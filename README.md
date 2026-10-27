@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MacroLift
 
-## Getting Started
+A phone-first web app for strength training, body-weight tracking, and nutrition logging.
+Each person has their own private account. Built with Next.js 16, TypeScript, Tailwind CSS 4,
+Supabase Auth and PostgreSQL (free tiers only).
 
-First, run the development server:
+## Local development
+
+Prerequisites: Node 22+, Docker Desktop running.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run db:start              # starts local Supabase (Postgres, Auth, Mailpit) in Docker
+cp .env.example .env.local    # then paste API_URL and PUBLISHABLE_KEY from `npx supabase status`
+npm run dev                   # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Local emails (sign-up confirmation, password reset) are caught by Mailpit at http://127.0.0.1:54324.
+Supabase Studio is at http://127.0.0.1:54323.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tests
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | What it covers |
+| --- | --- |
+| `npm test` | Unit tests: unit conversion, parsing, dates, validation, redirect safety |
+| `npm run test:db` | pgTAP: RLS cross-account isolation for every table, constraints, snapshots, account deletion |
+| `npm run test:integration` | Real API calls with two signed-in users: isolation, auth, profile, idempotent upserts |
+| `npm run test:e2e` | Playwright: sign-up + email confirm, onboarding, password reset, delete account, sign-out data clearing, axe accessibility, 360/768/1280 px layouts, keyboard |
+| `npm run db:reset` | Rebuilds the local DB from an empty state by applying all migrations |
 
-## Learn More
+Integration and E2E tests require the local Supabase stack and refuse to run against a non-local URL.
 
-To learn more about Next.js, take a look at the following resources:
+## Architecture notes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Security boundary is the database.** The browser talks to Supabase with the publishable key; Row
+  Level Security restricts every row to `auth.uid()`. Child tables also check the parent's owner and use
+  composite foreign keys `(parent_id, user_id)`. No service-role/secret key is used by the app.
+- `src/proxy.ts` (Next 16's renamed middleware) refreshes the session cookie and does optimistic redirects.
+- `/auth/callback` completes Google OAuth, email confirmation, and password-recovery links (PKCE).
+- Values are stored in kg/cm and converted for display (`src/lib/units.ts`). `NULL` nutrients mean unknown.
+- Workout and diary history store snapshots, so editing an exercise, routine, or food never rewrites the past.
+- Account deletion (`delete_my_account()`) deletes the auth user; every personal row cascades.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Database changes
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Add a new file in `supabase/migrations/`, then `npm run db:reset && npm run db:types && npm run test:db`.
