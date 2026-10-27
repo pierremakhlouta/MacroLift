@@ -100,6 +100,35 @@ export const TextField = forwardRef<HTMLInputElement, FieldProps>(function TextF
   );
 });
 
+type TextAreaProps = ComponentProps<"textarea"> & { label: string; hint?: ReactNode; error?: string | null };
+
+export function TextAreaField({ label, hint, error, id, className, ...rest }: TextAreaProps) {
+  const autoId = useId();
+  const fieldId = id ?? autoId;
+  const hintId = hint ? `${fieldId}-hint` : undefined;
+  const errorId = error ? `${fieldId}-error` : undefined;
+  return (
+    <div className={cx("space-y-1.5", className)}>
+      <label htmlFor={fieldId} className="block text-sm font-medium">
+        {label}
+      </label>
+      <textarea
+        id={fieldId}
+        className="block w-full rounded-xl border border-border-strong bg-surface-2 px-3 py-2 text-text placeholder:text-muted/70 aria-[invalid=true]:border-danger"
+        aria-invalid={error ? true : undefined}
+        aria-describedby={[hintId, errorId].filter(Boolean).join(" ") || undefined}
+        {...rest}
+      />
+      {hint && (
+        <p id={hintId} className="text-xs text-muted">
+          {hint}
+        </p>
+      )}
+      <FieldError id={errorId} error={error} />
+    </div>
+  );
+}
+
 export function FieldError({ id, error }: { id?: string; error?: string | null }) {
   if (!error) return null;
   return (

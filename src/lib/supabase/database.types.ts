@@ -307,6 +307,9 @@ isOneToOne: false
           Functions: {
             "delete_my_account":
 { Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"save_routine":
+{ Args: { "p_id": string,"p_items": Json,"p_name": string,"p_notes": string }; Returns: string
                            }
           }
           Enums: {

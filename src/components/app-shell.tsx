@@ -3,7 +3,7 @@
 import { Dumbbell, Home, LineChart, UserRound, UtensilsCrossed } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { Logo } from "@/components/logo";
 import { cx } from "@/components/ui";
 
@@ -15,10 +15,69 @@ const NAV = [
   { href: "/profile", label: "Profile", Icon: UserRound },
 ] as const;
 
-export function AppShell({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
-  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+type NavVariant = "sidebar" | "tabbar";
 
+/** Nav links; `pathname` is null while it streams in (no item marked current yet). */
+function NavItems({ variant, pathname }: { variant: NavVariant; pathname: string | null }) {
+  const isActive = (href: string) => pathname !== null && (pathname === href || pathname.startsWith(`${href}/`));
+  if (variant === "sidebar") {
+    return (
+      <ul className="space-y-1">
+        {NAV.map(({ href, label, Icon }) => (
+          <li key={href}>
+            <Link
+              href={href}
+              aria-current={isActive(href) ? "page" : undefined}
+              className={cx(
+                "flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium",
+                isActive(href) ? "bg-accent/15 text-accent" : "text-muted hover:bg-surface-2 hover:text-text",
+              )}
+            >
+              <Icon aria-hidden className="size-5" />
+              {label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+  return (
+    <ul className="grid grid-cols-5">
+      {NAV.map(({ href, label, Icon }) => (
+        <li key={href}>
+          <Link
+            href={href}
+            aria-current={isActive(href) ? "page" : undefined}
+            className={cx(
+              "flex min-h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium",
+              isActive(href) ? "text-accent" : "text-muted hover:text-text",
+            )}
+          >
+            <Icon aria-hidden className="size-5" />
+            <span>{label}</span>
+            {/* Non-colour indicator of the current tab */}
+            <span aria-hidden className={cx("h-0.5 w-6 rounded-full", isActive(href) ? "bg-accent" : "bg-transparent")} />
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function ActiveNavItems({ variant }: { variant: NavVariant }) {
+  return <NavItems variant={variant} pathname={usePathname()} />;
+}
+
+/** usePathname() must sit inside Suspense so dynamic routes can still prerender their shell. */
+function Nav({ variant }: { variant: NavVariant }) {
+  return (
+    <Suspense fallback={<NavItems variant={variant} pathname={null} />}>
+      <ActiveNavItems variant={variant} />
+    </Suspense>
+  );
+}
+
+export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-dvh md:flex">
       <a
@@ -34,23 +93,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Logo />
         </Link>
         <nav aria-label="Main">
-          <ul className="space-y-1">
-            {NAV.map(({ href, label, Icon }) => (
-              <li key={href}>
-                <Link
-                  href={href}
-                  aria-current={isActive(href) ? "page" : undefined}
-                  className={cx(
-                    "flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium",
-                    isActive(href) ? "bg-accent/15 text-accent" : "text-muted hover:bg-surface-2 hover:text-text",
-                  )}
-                >
-                  <Icon aria-hidden className="size-5" />
-                  {label}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <Nav variant="sidebar" />
         </nav>
       </aside>
 
@@ -72,25 +115,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         aria-label="Main"
         className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
       >
-        <ul className="grid grid-cols-5">
-          {NAV.map(({ href, label, Icon }) => (
-            <li key={href}>
-              <Link
-                href={href}
-                aria-current={isActive(href) ? "page" : undefined}
-                className={cx(
-                  "flex min-h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium",
-                  isActive(href) ? "text-accent" : "text-muted hover:text-text",
-                )}
-              >
-                <Icon aria-hidden className="size-5" />
-                <span>{label}</span>
-                {/* Non-colour indicator of the current tab */}
-                <span aria-hidden className={cx("h-0.5 w-6 rounded-full", isActive(href) ? "bg-accent" : "bg-transparent")} />
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <Nav variant="tabbar" />
       </nav>
     </div>
   );

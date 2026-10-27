@@ -1,0 +1,86 @@
+-- Built-in starter exercise library (owner_id NULL = read-only for every user).
+-- load_type: external = weight lifted; bodyweight = weight is optional added load;
+-- assisted = weight is assistance. Re-running is safe (conflicts on name are skipped).
+
+insert into public.exercises (owner_id, name, muscles, equipment, load_type)
+select null, v.name, v.muscles::public.muscle_group[], v.equipment::public.equipment_type, v.load_type::public.load_type
+from (values
+  -- Barbell
+  ('Barbell Back Squat',            '{quads,glutes,adductors}',              'barbell',       'external'),
+  ('Barbell Front Squat',           '{quads,glutes,abs}',                    'barbell',       'external'),
+  ('Barbell Bench Press',           '{chest,triceps,shoulders}',             'barbell',       'external'),
+  ('Incline Barbell Bench Press',   '{chest,shoulders,triceps}',             'barbell',       'external'),
+  ('Close-Grip Bench Press',        '{triceps,chest}',                       'barbell',       'external'),
+  ('Barbell Overhead Press',        '{shoulders,triceps}',                   'barbell',       'external'),
+  ('Conventional Deadlift',         '{hamstrings,glutes,lower_back,traps}',  'barbell',       'external'),
+  ('Sumo Deadlift',                 '{glutes,quads,adductors,hamstrings}',   'barbell',       'external'),
+  ('Romanian Deadlift',             '{hamstrings,glutes,lower_back}',        'barbell',       'external'),
+  ('Barbell Row',                   '{upper_back,lats,biceps}',              'barbell',       'external'),
+  ('Pendlay Row',                   '{upper_back,lats}',                     'barbell',       'external'),
+  ('Barbell Hip Thrust',            '{glutes,hamstrings}',                   'barbell',       'external'),
+  ('Barbell Curl',                  '{biceps,forearms}',                     'barbell',       'external'),
+  ('Barbell Shrug',                 '{traps}',                               'barbell',       'external'),
+  ('Good Morning',                  '{hamstrings,lower_back,glutes}',        'barbell',       'external'),
+  ('Barbell Lunge',                 '{quads,glutes}',                        'barbell',       'external'),
+  ('Trap Bar Deadlift',             '{quads,glutes,hamstrings,traps}',       'trap_bar',      'external'),
+  ('EZ-Bar Curl',                   '{biceps}',                              'ez_bar',        'external'),
+  ('EZ-Bar Skull Crusher',          '{triceps}',                             'ez_bar',        'external'),
+  -- Dumbbell
+  ('Dumbbell Bench Press',          '{chest,triceps,shoulders}',             'dumbbell',      'external'),
+  ('Incline Dumbbell Press',        '{chest,shoulders,triceps}',             'dumbbell',      'external'),
+  ('Dumbbell Fly',                  '{chest}',                               'dumbbell',      'external'),
+  ('Dumbbell Shoulder Press',       '{shoulders,triceps}',                   'dumbbell',      'external'),
+  ('Dumbbell Lateral Raise',        '{shoulders}',                           'dumbbell',      'external'),
+  ('Dumbbell Rear Delt Fly',        '{shoulders,upper_back}',                'dumbbell',      'external'),
+  ('One-Arm Dumbbell Row',          '{lats,upper_back,biceps}',              'dumbbell',      'external'),
+  ('Dumbbell Curl',                 '{biceps}',                              'dumbbell',      'external'),
+  ('Hammer Curl',                   '{biceps,forearms}',                     'dumbbell',      'external'),
+  ('Overhead Dumbbell Triceps Extension', '{triceps}',                       'dumbbell',      'external'),
+  ('Goblet Squat',                  '{quads,glutes}',                        'dumbbell',      'external'),
+  ('Dumbbell Romanian Deadlift',    '{hamstrings,glutes}',                   'dumbbell',      'external'),
+  ('Bulgarian Split Squat',         '{quads,glutes}',                        'dumbbell',      'external'),
+  ('Dumbbell Walking Lunge',        '{quads,glutes}',                        'dumbbell',      'external'),
+  ('Dumbbell Shrug',                '{traps}',                               'dumbbell',      'external'),
+  ('Dumbbell Step-Up',              '{quads,glutes}',                        'dumbbell',      'external'),
+  -- Machine
+  ('Leg Press',                     '{quads,glutes}',                        'machine',       'external'),
+  ('Hack Squat',                    '{quads,glutes}',                        'machine',       'external'),
+  ('Leg Extension',                 '{quads}',                               'machine',       'external'),
+  ('Seated Leg Curl',               '{hamstrings}',                          'machine',       'external'),
+  ('Lying Leg Curl',                '{hamstrings}',                          'machine',       'external'),
+  ('Standing Calf Raise',           '{calves}',                              'machine',       'external'),
+  ('Seated Calf Raise',             '{calves}',                              'machine',       'external'),
+  ('Hip Adduction Machine',         '{adductors}',                           'machine',       'external'),
+  ('Hip Abduction Machine',         '{abductors}',                           'machine',       'external'),
+  ('Machine Chest Press',           '{chest,triceps}',                       'machine',       'external'),
+  ('Pec Deck',                      '{chest}',                               'machine',       'external'),
+  ('Machine Shoulder Press',        '{shoulders,triceps}',                   'machine',       'external'),
+  ('Assisted Pull-Up Machine',      '{lats,biceps}',                         'machine',       'assisted'),
+  ('Assisted Dip Machine',          '{chest,triceps}',                       'machine',       'assisted'),
+  ('Smith Machine Squat',           '{quads,glutes}',                        'smith_machine', 'external'),
+  -- Cable
+  ('Lat Pulldown',                  '{lats,biceps}',                         'cable',         'external'),
+  ('Seated Cable Row',              '{upper_back,lats,biceps}',              'cable',         'external'),
+  ('Cable Fly',                     '{chest}',                               'cable',         'external'),
+  ('Triceps Pushdown',              '{triceps}',                             'cable',         'external'),
+  ('Cable Curl',                    '{biceps}',                              'cable',         'external'),
+  ('Face Pull',                     '{shoulders,upper_back}',                'cable',         'external'),
+  ('Cable Lateral Raise',           '{shoulders}',                           'cable',         'external'),
+  ('Cable Crunch',                  '{abs}',                                 'cable',         'external'),
+  ('Straight-Arm Pulldown',         '{lats}',                                'cable',         'external'),
+  -- Bodyweight (weight, if logged, is added load)
+  ('Pull-Up',                       '{lats,biceps,upper_back}',              'bodyweight',    'bodyweight'),
+  ('Chin-Up',                       '{lats,biceps}',                         'bodyweight',    'bodyweight'),
+  ('Push-Up',                       '{chest,triceps,shoulders}',             'bodyweight',    'bodyweight'),
+  ('Parallel Bar Dip',              '{chest,triceps,shoulders}',             'bodyweight',    'bodyweight'),
+  ('Inverted Row',                  '{upper_back,lats,biceps}',              'bodyweight',    'bodyweight'),
+  ('Bodyweight Squat',              '{quads,glutes}',                        'bodyweight',    'bodyweight'),
+  ('Hanging Leg Raise',             '{abs,obliques}',                        'bodyweight',    'bodyweight'),
+  ('Crunch',                        '{abs}',                                 'bodyweight',    'bodyweight'),
+  ('Back Extension',                '{lower_back,glutes,hamstrings}',        'bodyweight',    'bodyweight'),
+  ('Ab Wheel Rollout',              '{abs}',                                 'other',         'bodyweight'),
+  ('Russian Twist',                 '{obliques,abs}',                        'bodyweight',    'bodyweight'),
+  -- Kettlebell
+  ('Kettlebell Swing',              '{glutes,hamstrings}',                   'kettlebell',    'external')
+) as v(name, muscles, equipment, load_type)
+on conflict (lower(name)) where owner_id is null do nothing;

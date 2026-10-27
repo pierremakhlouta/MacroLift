@@ -3,7 +3,7 @@
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import type { User } from "@supabase/supabase-js";
 import { usePathname, useRouter } from "next/navigation";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, Suspense, useContext, useEffect, useState, type ReactNode } from "react";
 import { getSupabase } from "@/lib/supabase/client";
 import { clearAllLocalData, noteActiveUser } from "@/lib/local-store";
 import { matchesPath, PUBLIC_PATHS } from "@/lib/routes";
@@ -25,7 +25,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({ user: null, ready: false });
   const queryClient = useQueryClient();
   const router = useRouter();
-  const pathname = usePathname();
 
   useEffect(() => {
     const supabase = getSupabase();
@@ -52,14 +51,27 @@ function AuthProvider({ children }: { children: ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, [queryClient, router]);
 
-  // Expired/revoked session while on a protected page (e.g. refresh token rejected).
+  return (
+    <AuthContext.Provider value={state}>
+      {/* Reads the URL, so it sits in Suspense to keep dynamic routes prerenderable. */}
+      <Suspense>
+        <RedirectWhenSignedOut state={state} />
+      </Suspense>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+/** Expired/revoked session while on a protected page (e.g. refresh token rejected). */
+function RedirectWhenSignedOut({ state }: { state: AuthState }) {
+  const router = useRouter();
+  const pathname = usePathname();
   useEffect(() => {
     if (state.ready && !state.user && !intentionalSignOut && !matchesPath(pathname, PUBLIC_PATHS)) {
       router.replace(`/login?next=${encodeURIComponent(pathname)}`);
     }
   }, [state, pathname, router]);
-
-  return <AuthContext.Provider value={state}>{children}</AuthContext.Provider>;
+  return null;
 }
 
 export function Providers({ children }: { children: ReactNode }) {
