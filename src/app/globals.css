@@ -22,6 +22,9 @@
   --ok-bg: #11301f;
   --info: #8fc1ff;
   --info-bg: #142640;
+  /* Chart series: deeper lime from the accent hue, validated for dark-surface charts
+     (OKLCH L in band, >= 3:1 vs surface). */
+  --chart-1: #6fa827;
 }
 
 @theme inline {
@@ -43,6 +46,7 @@
   --color-ok-bg: var(--ok-bg);
   --color-info: var(--info);
   --color-info-bg: var(--info-bg);
+  --color-chart-1: var(--chart-1);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

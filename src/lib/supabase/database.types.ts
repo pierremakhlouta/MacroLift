@@ -85,14 +85,14 @@ isOneToOne: false
                   ]
                 },"foods": {
                   Row: {
-                    "archived_at": string | null,"brand": string | null,"calories_kcal": number | null,"carbs_g": number | null,"created_at": string,"fat_g": number | null,"fiber_g": number | null,"id": string,"name": string,"owner_id": string | null,"protein_g": number | null,"serving_size": number,"serving_unit": string,"sodium_mg": number | null,"sugar_g": number | null,"updated_at": string
+                    "archived_at": string | null,"brand": string | null,"calories_kcal": number | null,"carbs_g": number | null,"created_at": string,"fat_g": number | null,"fiber_g": number | null,"id": string,"name": string,"owner_id": string | null,"protein_g": number | null,"serving_size": number,"serving_unit": string,"sodium_mg": number | null,"source": string,"source_ref": string | null,"sugar_g": number | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "archived_at"?: string | null,"brand"?: string | null,"calories_kcal"?: number | null,"carbs_g"?: number | null,"created_at"?: string,"fat_g"?: number | null,"fiber_g"?: number | null,"id"?: string,"name": string,"owner_id"?: string | null,"protein_g"?: number | null,"serving_size": number,"serving_unit": string,"sodium_mg"?: number | null,"sugar_g"?: number | null,"updated_at"?: string
+                    "archived_at"?: string | null,"brand"?: string | null,"calories_kcal"?: number | null,"carbs_g"?: number | null,"created_at"?: string,"fat_g"?: number | null,"fiber_g"?: number | null,"id"?: string,"name": string,"owner_id"?: string | null,"protein_g"?: number | null,"serving_size": number,"serving_unit": string,"sodium_mg"?: number | null,"source"?: string,"source_ref"?: string | null,"sugar_g"?: number | null,"updated_at"?: string
                   }
                   Update: {
-                    "archived_at"?: string | null,"brand"?: string | null,"calories_kcal"?: number | null,"carbs_g"?: number | null,"created_at"?: string,"fat_g"?: number | null,"fiber_g"?: number | null,"id"?: string,"name"?: string,"owner_id"?: string | null,"protein_g"?: number | null,"serving_size"?: number,"serving_unit"?: string,"sodium_mg"?: number | null,"sugar_g"?: number | null,"updated_at"?: string
+                    "archived_at"?: string | null,"brand"?: string | null,"calories_kcal"?: number | null,"carbs_g"?: number | null,"created_at"?: string,"fat_g"?: number | null,"fiber_g"?: number | null,"id"?: string,"name"?: string,"owner_id"?: string | null,"protein_g"?: number | null,"serving_size"?: number,"serving_unit"?: string,"sodium_mg"?: number | null,"source"?: string,"source_ref"?: string | null,"sugar_g"?: number | null,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -305,8 +305,14 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "delete_my_account":
+            "add_diary_entries":
+{ Args: { "p_day": string,"p_items": Json,"p_meal": Database["public"]['Enums']["meal_category"] }; Returns: string
+                           },
+"delete_my_account":
 { Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"save_meal_template":
+{ Args: { "p_id": string,"p_items": Json,"p_name": string,"p_notes": string }; Returns: string
                            },
 "save_routine":
 { Args: { "p_id": string,"p_items": Json,"p_name": string,"p_notes": string }; Returns: string
