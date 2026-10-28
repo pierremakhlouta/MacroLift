@@ -13,7 +13,7 @@
 - ✅ Security headers: frame blocking, `nosniff`, referrer policy, permissions policy, no `X-Powered-By`.
 - ✅ Account deletion removes the auth user and cascades every personal row (tested).
 - ✅ Sign-out clears locally cached data; an unsynced workout survives an expired session for the same user.
-- ☐ Review `/privacy`: add your contact details and hosting region (marked in the page source).
+- ✅ Privacy notice has the contact address (macrolift.team@gmail.com) and hosting region.
 - ☐ Turn on **Confirm email**, password rules and **Secure password change** in the hosted project
   (see `docs/DEPLOYMENT.md` §2).
 

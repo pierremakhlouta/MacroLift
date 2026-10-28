@@ -5,8 +5,7 @@ import { APP_NAME } from "@/lib/brand";
 export const metadata = { title: "Privacy notice" };
 
 // Plain-language notice for a small private beta among friends.
-// OWNER TODO before sharing: replace CONTACT and HOSTING_REGION below.
-const CONTACT = "the person who invited you";
+const CONTACT = "macrolift.team@gmail.com";
 const HOSTING_REGION = "the Americas";
 const LAST_UPDATED = "28 October 2026";
 export default function PrivacyPage() {
@@ -72,7 +71,11 @@ export default function PrivacyPage() {
         <p>
           You can delete your account at any time from Profile → Delete account. This permanently removes your account and
           all data you logged. Any copy the owner made as a backup is deleted the next time backups are replaced. For a copy of
-          your data or any question, contact {CONTACT}.
+          your data or any question, email{" "}
+          <a href={`mailto:${CONTACT}`} className="text-accent underline underline-offset-4">
+            {CONTACT}
+          </a>
+          .
         </p>
 
         <h2>Not medical advice</h2>
