@@ -1,16 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useState, type FormEvent } from "react";
 import { Alert, Button, Card, TextField } from "@/components/ui";
 import { authErrorMessage } from "@/lib/auth-errors";
 import { getSupabase } from "@/lib/supabase/client";
 import { emailSchema, firstError } from "@/lib/validation/profile";
 
 export default function ForgotPasswordPage() {
+  return (
+    <Suspense>
+      <ForgotPasswordForm />
+    </Suspense>
+  );
+}
+
+function ForgotPasswordForm() {
+  const params = useSearchParams();
   const [email, setEmail] = useState("");
   const [fieldError, setFieldError] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  // Set when a reset link was opened in a different browser than the one that requested it.
+  const [error, setError] = useState<string | null>(params.get("error"));
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
 

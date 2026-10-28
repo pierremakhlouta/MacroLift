@@ -53,6 +53,7 @@ function LoginForm() {
       <div className="space-y-4">
         {params.get("deleted") && <Alert tone="success">Your account and its data were deleted.</Alert>}
         {params.get("reset") && <Alert tone="success">Password updated. Sign in with your new password.</Alert>}
+        {params.get("confirmed") && <Alert tone="success">Your email is confirmed. Sign in to continue.</Alert>}
         {error && <Alert tone="error">{error}</Alert>}
         <GoogleButton next={next} onError={setError} />
         <form onSubmit={onSubmit} noValidate className="space-y-4">

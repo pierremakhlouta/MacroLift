@@ -141,6 +141,16 @@ test("a used or pre-scanned email link points the user to sign in", async ({ pag
   await page.goto("/auth/callback?error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired");
   await expect(page).toHaveURL(/\/login/);
   await expect(page.getByText(/your email is probably confirmed: try signing in/)).toBeVisible();
-  await page.goto("/auth/callback?code=not-a-real-code");
-  await expect(page.getByText(/opened in the browser that requested them/)).toBeVisible();
+});
+
+test("a link opened in a different browser: confirmation says sign in, reset asks for a new link", async ({ page }) => {
+  // No PKCE verifier cookie in this browser, as when the email is opened on another device.
+  await page.goto("/auth/callback?code=from-another-browser&next=/onboarding");
+  await expect(page).toHaveURL(/\/login\?confirmed=1/);
+  await expect(page.getByText("Your email is confirmed. Sign in to continue.")).toBeVisible();
+
+  await page.goto("/auth/callback?code=from-another-browser&next=/reset-password");
+  await expect(page).toHaveURL(/\/forgot-password/);
+  await expect(page.getByText(/same browser you requested it from/)).toBeVisible();
+  await expect(page.getByRole("button", { name: /send/i })).toBeVisible();
 });

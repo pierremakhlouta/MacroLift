@@ -25,8 +25,17 @@ export async function GET(request: NextRequest) {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
   if (error || !data.user) {
-    const message = `${USED_LINK_MESSAGE} Links also need to be opened in the browser that requested them.`;
-    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(message)}`);
+    // Opened in a different browser or app than the one that started the flow (common: sign up on a
+    // laptop, tap the email on a phone). Supabase has already confirmed the email before redirecting
+    // here, so a confirmation link only needs a normal sign-in. A reset link must be requested again.
+    if (error?.code === "pkce_code_verifier_not_found") {
+      if (next === "/reset-password") {
+        const message = "Open the password reset link in the same browser you requested it from, or request a new link below.";
+        return NextResponse.redirect(`${origin}/forgot-password?error=${encodeURIComponent(message)}`);
+      }
+      return NextResponse.redirect(`${origin}/login?confirmed=1`);
+    }
+    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(USED_LINK_MESSAGE)}`);
   }
 
   // First sign-in (including Google): send new users through setup unless they are resetting a password.
