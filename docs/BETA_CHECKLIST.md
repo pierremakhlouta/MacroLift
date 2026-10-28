@@ -14,8 +14,7 @@
 - ✅ Account deletion removes the auth user and cascades every personal row (tested).
 - ✅ Sign-out clears locally cached data; an unsynced workout survives an expired session for the same user.
 - ✅ Privacy notice has the contact address (macrolift.team@gmail.com) and hosting region.
-- ☐ Turn on **Confirm email**, password rules and **Secure password change** in the hosted project
-  (see `docs/DEPLOYMENT.md` §2).
+- ✅ Hosted auth: confirm email, 8+ chars with letters and digits, secure email/password change, no anonymous sign-ins.
 
 ## Data integrity
 - ✅ Values stored canonically (kg, cm); unit switching never rewrites data.
@@ -38,12 +37,13 @@
 - ✅ Brevo SMTP configured; confirmation email reached a Gmail inbox (2026-10-28).
 - ☐ Also try a password reset, and an Outlook/iCloud/university address, checking spam folders.
 - ☐ Calendar reminder to renew the Brevo SMTP key before it expires (1 year, or 90 days without sending).
-- ☐ Google OAuth app in **Testing** mode with each tester added (§4), or leave Google off.
-- ☐ Supabase Site URL and redirect URLs point at the production URL only.
+- ✅ Google sign-in working (Testing mode). ☐ Add each tester's Gmail as a test user before sharing.
+- ✅ Supabase Site URL and redirect URL point at https://macro-lift-nine.vercel.app only.
 
 ## Operations
-- ☐ Migrations applied with `npx supabase db push`; all tables show RLS enabled.
-- ☐ Vercel environment variables set (§5); `FDC_API_KEY` is not prefixed `NEXT_PUBLIC_`.
+- ✅ Migrations applied; anonymous access to all 15 tables and 5 functions denied on the live project (checked 2026-10-28).
+  Note: some networks (e.g. company Wi-Fi) block port 5432; use another network for `db push`.
+- ✅ Vercel environment variables set; USDA key absent from public JavaScript; security headers live.
 - ☐ Phone smoke test after deploy (sign up → onboarding → workout → food → weight → sign out).
 - ☐ Tell testers: it's a hobby project on free plans, there are no backups, and it isn't medical advice.
 - ☐ Keep the beta small and non-commercial (Vercel Hobby terms).
