@@ -136,3 +136,11 @@ test("delete account removes access", async ({ page }) => {
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.getByRole("alert").filter({ hasText: "incorrect" })).toBeVisible();
 });
+
+test("a used or pre-scanned email link points the user to sign in", async ({ page }) => {
+  await page.goto("/auth/callback?error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired");
+  await expect(page).toHaveURL(/\/login/);
+  await expect(page.getByText(/your email is probably confirmed: try signing in/)).toBeVisible();
+  await page.goto("/auth/callback?code=not-a-real-code");
+  await expect(page.getByText(/opened in the browser that requested them/)).toBeVisible();
+});
