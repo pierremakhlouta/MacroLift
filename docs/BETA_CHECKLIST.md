@@ -37,6 +37,7 @@
 ## Email and sign-in
 - ☐ Brevo SMTP configured and a confirmation and reset email received in Gmail **and** another provider,
   checking spam folders (§3).
+- ☐ Calendar reminder to renew the Brevo SMTP key before it expires (1 year, or 90 days without sending).
 - ☐ Google OAuth app in **Testing** mode with each tester added (§4), or leave Google off.
 - ☐ Supabase Site URL and redirect URLs point at the production URL only.
 

@@ -54,7 +54,10 @@ Under **Authentication**:
    > policy. Send yourself a test before inviting anyone. A custom domain fixes this but costs
    > money, so it's out of scope.
 3. **SMTP & API → SMTP**: note the server (`smtp-relay.brevo.com`), port `587` and your SMTP
-   login, then **Generate a new SMTP key**. Treat the key as a password.
+   login, then **Generate a new SMTP key** (Standard variant, longest expiry). Treat the key as a password.
+   > **The key expires** on its expiry date (max 1 year) and also after **90 days without any email
+   > sent**. When it does, sign-up and password-reset emails silently stop. Fix: generate a new key and
+   > paste it into Supabase's SMTP password field. Put a calendar reminder a few weeks before the expiry date.
 4. In Supabase, **Authentication → Emails → SMTP Settings**, turn on custom SMTP:
    - Sender email: the verified sender. Sender name: `MacroLift`.
    - Host `smtp-relay.brevo.com`, port `587`, username = Brevo SMTP login, password = the SMTP key.
