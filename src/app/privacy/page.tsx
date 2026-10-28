@@ -4,8 +4,11 @@ import { APP_NAME } from "@/lib/brand";
 
 export const metadata = { title: "Privacy notice" };
 
-// Plain-language notice for a small private beta among friends. The app owner should review
-// and edit it (contact details, hosting region) before sharing the link.
+// Plain-language notice for a small private beta among friends.
+// OWNER TODO before sharing: replace CONTACT and HOSTING_REGION below.
+const CONTACT = "the person who invited you";
+const HOSTING_REGION = "the region chosen when the database was set up";
+const LAST_UPDATED = "28 October 2026";
 export default function PrivacyPage() {
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-8">
@@ -14,6 +17,7 @@ export default function PrivacyPage() {
       </Link>
       <article className="mt-6 space-y-4 text-sm leading-6 text-text/90 [&_h2]:mt-6 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-text">
         <h1 className="text-2xl font-bold text-text">Privacy notice</h1>
+        <p className="text-muted">Last updated {LAST_UPDATED}.</p>
         <p className="text-muted">
           {APP_NAME} is a personal hobby project shared with friends and family. It is not a commercial service and not
           a medical service.
@@ -27,6 +31,12 @@ export default function PrivacyPage() {
           <li>While a workout is in progress, a temporary copy is kept in your browser so it can be recovered after a lost connection. It is cleared when you sign out.</li>
         </ul>
 
+        <h2>Why we store it</h2>
+        <p>
+          Only to run the app for you: sign you in, save what you log, and show your history, totals, and estimates. Your
+          data isn&apos;t used for anything else.
+        </p>
+
         <h2>Who can see it</h2>
         <p>
           Only you. Each account is isolated by database access rules, and other users cannot read or change your data.
@@ -34,10 +44,25 @@ export default function PrivacyPage() {
           data.
         </p>
 
-        <h2>Where it lives</h2>
+        <h2>Services involved</h2>
+        <ul className="list-disc space-y-1 pl-5">
+          <li><strong>Supabase</strong> stores your account and data (hosted in {HOSTING_REGION}).</li>
+          <li><strong>Vercel</strong> serves the app and sees normal web request information such as IP addresses.</li>
+          <li><strong>Brevo</strong> sends sign-up and password-reset emails, so it receives your email address.</li>
+          <li><strong>Google</strong>, only if you choose “Continue with Google”.</li>
+          <li>
+            <strong>USDA FoodData Central</strong>, only if you use USDA food search: the app&apos;s server sends your search
+            words, never your identity.
+          </li>
+        </ul>
         <p>
-          Data is stored with Supabase (database and sign-in) and the app is served by a hosting provider. Both run on
-          their free plans, which do not include automatic backups, so keep your own copy of anything important.
+          All run on free plans, which don&apos;t include automatic backups, so keep your own copy of anything important.
+        </p>
+
+        <h2>Cookies and browser storage</h2>
+        <p>
+          Only what&apos;s needed to keep you signed in, plus browser storage for in-progress workouts.
+          No advertising or analytics cookies.
         </p>
 
         <h2>No tracking or ads</h2>
@@ -46,7 +71,8 @@ export default function PrivacyPage() {
         <h2>Deleting your data</h2>
         <p>
           You can delete your account at any time from Profile → Delete account. This permanently removes your account and
-          all data you logged.
+          all data you logged. Any copy the owner made as a backup is deleted the next time backups are replaced. For a copy of
+          your data or any question, contact {CONTACT}.
         </p>
 
         <h2>Not medical advice</h2>

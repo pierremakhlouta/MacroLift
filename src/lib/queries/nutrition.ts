@@ -6,6 +6,7 @@ import { getSupabase } from "@/lib/supabase/client";
 import type { Enums, Tables } from "@/lib/supabase/database.types";
 import type { UsdaFood } from "@/lib/nutrition/usda";
 import { foodSchema, type FoodInput } from "@/lib/validation/food";
+import { targetSchema, type TargetInput } from "@/lib/validation/target";
 
 export type Food = Tables<"foods">;
 export type DiaryEntry = Tables<"diary_entries">;
@@ -276,5 +277,68 @@ export function useTargetForDate(date: string) {
       if (error) throw new Error(error.message);
       return data;
     },
+  });
+}
+
+/** All of the user's targets, newest effective date first. */
+export function useTargets() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["targets", user?.id, "all"],
+    enabled: Boolean(user),
+    queryFn: async (): Promise<NutritionTarget[]> => {
+      const { data, error } = await getSupabase()
+        .from("nutrition_targets")
+        .select("*")
+        .order("effective_from", { ascending: false })
+        .limit(1000);
+      if (error) throw new Error(error.message);
+      return data;
+    },
+  });
+}
+
+/** Insert a new effective-dated target, or update an existing one by id. Only ever user-entered values. */
+export function useSaveTarget() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, input }: { id?: string; input: TargetInput }): Promise<NutritionTarget> => {
+      const values = targetSchema.parse(input);
+      const supabase = getSupabase();
+      const { data, error } = id
+        ? await supabase.from("nutrition_targets").update(values).eq("id", id).select("*").single()
+        : await supabase.from("nutrition_targets").insert(values).select("*").single();
+      if (error) {
+        throw new Error(error.code === "23505" ? "You already have a target starting on that date. Edit that one instead." : error.message);
+      }
+      return data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["targets"] }),
+  });
+}
+
+export function useDeleteTarget() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await getSupabase().from("nutrition_targets").delete().eq("id", id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["targets"] }),
+  });
+}
+
+/** Undo a delete by re-inserting the same row (same id and effective date). */
+export function useRestoreTarget() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (t: NutritionTarget) => {
+      const { id, effective_from, calories_kcal, protein_g, carbs_g, fat_g, fiber_g } = t;
+      const { error } = await getSupabase()
+        .from("nutrition_targets")
+        .insert({ id, effective_from, calories_kcal, protein_g, carbs_g, fat_g, fiber_g });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["targets"] }),
   });
 }

@@ -4,6 +4,7 @@ import { LogOut } from "lucide-react";
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { EstimateDetailsForm } from "@/components/estimate-details-form";
+import { MaintenanceCard } from "@/components/nutrition/maintenance-card";
 import { signOut, useAuth } from "@/components/providers";
 import { Alert, Button, Card, PageHeader, QueryState, SegmentedRadio, TextField } from "@/components/ui";
 import { authErrorMessage } from "@/lib/auth-errors";
@@ -61,6 +62,8 @@ export default function ProfilePage() {
             }}
           />
         </Card>
+
+        <MaintenanceCard units={profile.data.unit_system} showEditLink={false} />
 
         {usesPassword && <ChangePasswordCard />}
 

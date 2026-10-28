@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertTriangle, Info } from "lucide-react";
+import Link from "next/link";
 import { fmtNutrient } from "@/components/nutrition/format";
 import { cx } from "@/components/ui";
 import { dayTotals, NUTRIENT_LABELS, remainingFor, type LoggedEntry, type NutrientKey } from "@/lib/nutrition/totals";
@@ -62,7 +63,7 @@ export function DayTotals({ entries, target }: { entries: LoggedEntry[]; target:
             </p>
           </>
         )}
-        {kcalTarget == null && <p className="mt-1 text-xs text-muted">No calorie target set.</p>}
+        {kcalTarget == null && <p className="mt-1 text-xs text-muted">No calorie target set for this day.</p>}
       </div>
 
       <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -102,6 +103,9 @@ export function DayTotals({ entries, target }: { entries: LoggedEntry[]; target:
         </p>
       )}
       <p className="text-xs text-muted">Exercise is never added to or subtracted from your calorie budget.</p>
+      <Link href="/nutrition/targets" className="inline-flex min-h-11 items-center text-sm text-accent underline underline-offset-4">
+        {target ? "Change targets" : "Set a target"}
+      </Link>
     </section>
   );
 }

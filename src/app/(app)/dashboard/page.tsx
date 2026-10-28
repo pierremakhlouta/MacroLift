@@ -33,7 +33,7 @@ export default function DashboardPage() {
 
         {profile.data?.onboarding_completed_at && missingEstimateDetails && (
           <Alert tone="info" title="Want a maintenance estimate?" action={<ButtonLink href="/profile" variant="secondary">Add details</ButtonLink>}>
-            Add your details in Profile. The estimate is shown separately and never changes your target.
+            Add your details in Profile. The estimate is shown on the Targets page, separately, and never changes your target.
           </Alert>
         )}
       </div>

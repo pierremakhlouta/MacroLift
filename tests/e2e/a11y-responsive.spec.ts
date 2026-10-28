@@ -11,7 +11,7 @@ for (const path of ["/login", "/signup", "/forgot-password", "/privacy"]) {
 
 test("signed-in pages are accessible and fit the viewport @responsive", async ({ page }) => {
   const user = await signInAsNewUser(page, "a11y");
-  for (const path of ["/dashboard", "/workouts", "/nutrition", "/progress", "/profile"]) {
+  for (const path of ["/dashboard", "/workouts", "/nutrition", "/nutrition/targets", "/progress", "/profile"]) {
     await page.goto(path);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expectNoHorizontalScroll(page);
@@ -51,4 +51,14 @@ test("focus indicator is visible on form controls", async ({ page }) => {
   await page.keyboard.press("Tab");
   const outline = await page.getByLabel("Password").evaluate((el) => getComputedStyle(el).outlineStyle);
   expect(outline).not.toBe("none");
+});
+
+test("security headers are sent", async ({ request }) => {
+  const res = await request.get("/login");
+  const h = res.headers();
+  expect(h["x-frame-options"]).toBe("DENY");
+  expect(h["x-content-type-options"]).toBe("nosniff");
+  expect(h["content-security-policy"]).toContain("frame-ancestors 'none'");
+  expect(h["referrer-policy"]).toBe("strict-origin-when-cross-origin");
+  expect(h["x-powered-by"]).toBeUndefined();
 });
