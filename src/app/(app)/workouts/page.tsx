@@ -1,8 +1,9 @@
 "use client";
 
 import { BookOpen, ChevronRight, Dumbbell, Plus } from "lucide-react";
+import { StartRoutineButton, StartWorkoutCard } from "@/components/workouts/start-workout-card";
 import Link from "next/link";
-import { ButtonLink, Card, EmptyState, PageHeader, QueryState } from "@/components/ui";
+import { ButtonLink, EmptyState, PageHeader, QueryState } from "@/components/ui";
 import { useRoutines } from "@/lib/queries/routines";
 import { formatTarget } from "@/lib/routines/targets";
 
@@ -21,13 +22,7 @@ export default function WorkoutsPage() {
       />
 
       <div className="space-y-6">
-        <Card aria-labelledby="start-heading">
-          <div className="flex items-center gap-3">
-            <Dumbbell aria-hidden className="size-5 text-accent" />
-            <h2 id="start-heading" className="text-lg font-semibold">Start a workout</h2>
-          </div>
-          <p className="mt-2 text-sm text-muted">Live workout logging arrives in the next build phase.</p>
-        </Card>
+        <StartWorkoutCard />
 
         <section aria-labelledby="routines-heading" className="space-y-3">
           <div className="flex items-center justify-between gap-3">
@@ -48,11 +43,8 @@ export default function WorkoutsPage() {
           {!!routines.data?.length && (
             <ul className="space-y-3">
               {routines.data.map((r) => (
-                <li key={r.id}>
-                  <Link
-                    href={`/workouts/routines/${r.id}`}
-                    className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 hover:border-border-strong"
-                  >
+                <li key={r.id} className="flex items-center gap-2 rounded-2xl border border-border bg-surface p-2 pl-4 hover:border-border-strong">
+                  <Link href={`/workouts/routines/${r.id}`} className="flex min-w-0 flex-1 items-center gap-3 rounded-xl py-2">
                     <span className="min-w-0 flex-1">
                       <span className="block font-semibold">{r.name}</span>
                       <span className="block text-sm text-muted">
@@ -74,6 +66,7 @@ export default function WorkoutsPage() {
                     <ChevronRight aria-hidden className="size-5 shrink-0 text-muted" />
                     <span className="sr-only">Edit routine</span>
                   </Link>
+                  <StartRoutineButton routine={r} />
                 </li>
               ))}
             </ul>

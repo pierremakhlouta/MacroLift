@@ -1,6 +1,7 @@
 "use client";
 
-import { Dumbbell, LineChart, UtensilsCrossed } from "lucide-react";
+import { LineChart, UtensilsCrossed } from "lucide-react";
+import { StartWorkoutCard } from "@/components/workouts/start-workout-card";
 import { Alert, ButtonLink, Card, PageHeader, QueryState } from "@/components/ui";
 import { useLatestWeight, useProfile, useUnitSystem } from "@/lib/queries/profile";
 import { formatWeight } from "@/lib/units";
@@ -27,13 +28,7 @@ export default function DashboardPage() {
           </Alert>
         )}
 
-        <Card aria-labelledby="today-workout">
-          <div className="flex items-center gap-3">
-            <Dumbbell aria-hidden className="size-5 text-accent" />
-            <h2 id="today-workout" className="text-lg font-semibold">Today&apos;s workout</h2>
-          </div>
-          <p className="mt-2 text-sm text-muted">Workout logging arrives in the next build phase.</p>
-        </Card>
+        <StartWorkoutCard />
 
         <Card aria-labelledby="today-nutrition">
           <div className="flex items-center gap-3">

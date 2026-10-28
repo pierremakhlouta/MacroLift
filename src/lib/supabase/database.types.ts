@@ -221,14 +221,14 @@ isOneToOne: false
                   ]
                 },"session_exercises": {
                   Row: {
-                    "created_at": string,"exercise_id": string | null,"exercise_name_snapshot": string,"id": string,"load_type_snapshot": Database["public"]['Enums']["load_type"],"notes": string | null,"position": number,"revision": number,"session_id": string,"updated_at": string,"user_id": string
+                    "created_at": string,"exercise_id": string | null,"exercise_name_snapshot": string,"id": string,"load_type_snapshot": Database["public"]['Enums']["load_type"],"notes": string | null,"position": number,"revision": number,"session_id": string,"target_reps_max": number | null,"target_reps_min": number | null,"target_sets": number | null,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"exercise_id"?: string | null,"exercise_name_snapshot": string,"id": string,"load_type_snapshot"?: Database["public"]['Enums']["load_type"],"notes"?: string | null,"position": number,"revision"?: number,"session_id": string,"updated_at"?: string,"user_id"?: string
+                    "created_at"?: string,"exercise_id"?: string | null,"exercise_name_snapshot": string,"id": string,"load_type_snapshot"?: Database["public"]['Enums']["load_type"],"notes"?: string | null,"position": number,"revision"?: number,"session_id": string,"target_reps_max"?: number | null,"target_reps_min"?: number | null,"target_sets"?: number | null,"updated_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "created_at"?: string,"exercise_id"?: string | null,"exercise_name_snapshot"?: string,"id"?: string,"load_type_snapshot"?: Database["public"]['Enums']["load_type"],"notes"?: string | null,"position"?: number,"revision"?: number,"session_id"?: string,"updated_at"?: string,"user_id"?: string
+                    "created_at"?: string,"exercise_id"?: string | null,"exercise_name_snapshot"?: string,"id"?: string,"load_type_snapshot"?: Database["public"]['Enums']["load_type"],"notes"?: string | null,"position"?: number,"revision"?: number,"session_id"?: string,"target_reps_max"?: number | null,"target_reps_min"?: number | null,"target_sets"?: number | null,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -310,6 +310,9 @@ isOneToOne: false
                            },
 "save_routine":
 { Args: { "p_id": string,"p_items": Json,"p_name": string,"p_notes": string }; Returns: string
+                           },
+"sync_workout":
+{ Args: { "p_ops": Json }; Returns: Json
                            }
           }
           Enums: {

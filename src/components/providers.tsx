@@ -41,7 +41,9 @@ function AuthProvider({ children }: { children: ReactNode }) {
       setState({ user, ready: true });
 
       if (event === "SIGNED_OUT") {
-        clearAllLocalData();
+        // Deliberate sign-out already wiped local data (see signOut()). An expired or revoked
+        // session keeps this account's unsynced workout so it can upload after signing back in;
+        // if a different account signs in instead, noteActiveUser() clears it.
         queryClient.clear();
         if (!intentionalSignOut && !matchesPath(window.location.pathname, PUBLIC_PATHS)) {
           router.replace(`/login?next=${encodeURIComponent(window.location.pathname)}`);

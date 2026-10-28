@@ -16,6 +16,7 @@ export function Dialog({
   children,
   footer,
   size = "md",
+  dismissible = true,
 }: {
   open: boolean;
   onClose: () => void;
@@ -24,6 +25,8 @@ export function Dialog({
   children: ReactNode;
   footer?: ReactNode;
   size?: "sm" | "md";
+  /** false = the user must choose an action in the footer (no close button, Esc ignored). */
+  dismissible?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -47,7 +50,7 @@ export function Dialog({
       onClose={onClose}
       onCancel={(e) => {
         e.preventDefault();
-        onClose();
+        if (dismissible) onClose();
       }}
       className={cx(
         "m-0 h-dvh max-h-none w-full max-w-none bg-surface p-0 text-text backdrop:bg-black/70",
@@ -64,6 +67,7 @@ export function Dialog({
               </h2>
               {description && <div className="mt-0.5 text-sm text-muted">{description}</div>}
             </div>
+            {dismissible && (
             <button
               type="button"
               onClick={onClose}
@@ -72,6 +76,7 @@ export function Dialog({
             >
               <X aria-hidden className="size-5" />
             </button>
+            )}
           </header>
           <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">{children}</div>
           {footer && <footer className="border-t border-border px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">{footer}</footer>}
