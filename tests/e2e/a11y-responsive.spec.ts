@@ -62,3 +62,16 @@ test("security headers are sent", async ({ request }) => {
   expect(h["referrer-policy"]).toBe("strict-origin-when-cross-origin");
   expect(h["x-powered-by"]).toBeUndefined();
 });
+
+test("installable: manifest, icons and iOS home-screen tags are served without sign-in", async ({ page, request }) => {
+  const manifest = await (await request.get("/manifest.webmanifest")).json();
+  expect(manifest).toMatchObject({ name: "MacroLift", display: "standalone", start_url: "/dashboard" });
+  for (const icon of manifest.icons) expect((await request.get(icon.src)).status()).toBe(200);
+
+  await page.goto("/login");
+  await expect(page.locator('link[rel="manifest"]')).toHaveCount(1);
+  const appleIcon = await page.locator('link[rel="apple-touch-icon"]').getAttribute("href");
+  expect((await request.get(appleIcon!)).status()).toBe(200);
+  await expect(page.locator('meta[name="apple-mobile-web-app-title"]')).toHaveAttribute("content", "MacroLift");
+  expect((await request.get("/icon.svg")).headers()["content-type"]).toContain("svg");
+});
