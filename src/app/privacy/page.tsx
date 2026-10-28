@@ -7,7 +7,7 @@ export const metadata = { title: "Privacy notice" };
 // Plain-language notice for a small private beta among friends.
 // OWNER TODO before sharing: replace CONTACT and HOSTING_REGION below.
 const CONTACT = "the person who invited you";
-const HOSTING_REGION = "the region chosen when the database was set up";
+const HOSTING_REGION = "the Americas";
 const LAST_UPDATED = "28 October 2026";
 export default function PrivacyPage() {
   return (
