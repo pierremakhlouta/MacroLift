@@ -23,5 +23,7 @@ export default defineConfig({
     url: "http://localhost:3000/login",
     reuseExistingServer: true,
     timeout: 240_000,
+    // Tests never call the real USDA API, whatever .env.local holds (process env wins over .env files).
+    env: { FDC_API_KEY: "" },
   },
 });
