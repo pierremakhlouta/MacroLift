@@ -48,11 +48,11 @@ Under **Authentication**:
 1. Create a free Brevo account at https://www.brevo.com.
 2. **Senders, Domains & Dedicated IPs → Senders**: add the address emails will come from and confirm
    the verification email.
-   > **Not yet verified by me:** whether a free Gmail address works reliably as a sender. Other
-   > sources say Brevo accepts a verified single sender without a custom domain, but mail "from"
-   > `@gmail.com` sent through a third party may be filtered to spam because of Gmail's DMARC
-   > policy. Send yourself a test before inviting anyone. A custom domain fixes this but costs
-   > money, so it's out of scope.
+   Brevo warns that free addresses are "not recommended"; continue anyway. **Tested 2026-10-28:**
+   with a verified `@gmail.com` sender, Brevo rewrites the From address to
+   `<name>@<account-id>.brevosend.com` (display name kept) and the confirmation email landed in a
+   Gmail inbox, not spam. Brevo didn't add a postal-address footer to these transactional emails.
+   A custom domain would let the From address match exactly, but it costs money and isn't needed.
 3. **SMTP & API → SMTP**: note the server (`smtp-relay.brevo.com`), port `587` and your SMTP
    login, then **Generate a new SMTP key** (Standard variant, longest expiry). Treat the key as a password.
    > **The key expires** on its expiry date (max 1 year) and also after **90 days without any email
