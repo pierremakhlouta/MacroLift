@@ -211,3 +211,25 @@ test("workouts pages are accessible and fit the viewport @responsive", async ({ 
   await expectNoA11yViolations(page);
   await user.cleanup();
 });
+
+test("cardio in a routine has no set or rep targets", async ({ page }) => {
+  const user = await signInAsNewUser(page, "routine-cardio");
+  await page.goto("/workouts/routines/new");
+  await page.getByLabel("Routine name").fill("Cardio day");
+  await page.getByRole("button", { name: "Add exercise" }).click();
+  const picker = page.getByRole("dialog", { name: "Add exercise" });
+  await picker.getByLabel("Search exercises").fill("treadmill");
+  await picker.getByRole("button", { name: /^Treadmill/ }).click();
+
+  const card = page.getByRole("region", { name: "1. Treadmill" });
+  await expect(card.getByText("Cardio: log distance and time during the workout.")).toBeVisible();
+  await expect(card.getByLabel("Target sets")).toHaveCount(0);
+  await expect(card.getByLabel("Target reps")).toHaveCount(0);
+  await expectNoA11yViolations(page);
+
+  await page.getByRole("button", { name: "Save routine" }).click();
+  await expect.poll(async () => (await user.db.from("routine_exercises").select("target_sets, target_reps_min")).data).toEqual([
+    { target_sets: null, target_reps_min: null },
+  ]);
+  await user.cleanup();
+});
