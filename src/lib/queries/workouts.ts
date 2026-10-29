@@ -5,7 +5,7 @@ import { useAuth } from "@/components/providers";
 import { getSupabase } from "@/lib/supabase/client";
 import type { Tables } from "@/lib/supabase/database.types";
 
-export type HistorySet = Pick<Tables<"workout_sets">, "id" | "position" | "reps" | "weight_kg" | "is_warmup" | "notes">;
+export type HistorySet = Pick<Tables<"workout_sets">, "id" | "position" | "reps" | "weight_kg" | "duration_seconds" | "distance_m" | "is_warmup" | "notes">;
 export type HistoryExercise = Pick<
   Tables<"session_exercises">,
   "id" | "exercise_name_snapshot" | "load_type_snapshot" | "position" | "notes" | "target_sets" | "target_reps_min" | "target_reps_max"
@@ -18,7 +18,7 @@ export type HistoryWorkout = Pick<
 const HISTORY_SELECT =
   "id, name, routine_name_snapshot, started_at, completed_at, notes, " +
   "exercises:session_exercises(id, exercise_name_snapshot, load_type_snapshot, position, notes, target_sets, target_reps_min, target_reps_max, " +
-  "sets:workout_sets(id, position, reps, weight_kg, is_warmup, notes))";
+  "sets:workout_sets(id, position, reps, weight_kg, duration_seconds, distance_m, is_warmup, notes))";
 
 const PAGE_SIZE = 15;
 

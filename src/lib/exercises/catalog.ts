@@ -57,6 +57,7 @@ export const LOAD_TYPES: Record<LoadType, { label: string; description: string }
   external: { label: "Weight lifted", description: "Log the weight you move (barbell, dumbbell, machine)." },
   bodyweight: { label: "Bodyweight", description: "Weight is optional and means extra load added (belt, vest)." },
   assisted: { label: "Assisted", description: "Weight means assistance (counterweight), so lower is harder." },
+  cardio: { label: "Time and distance", description: "For cardio like a treadmill, bike or rowing machine. No weight or reps." },
 };
 
 export const muscleLabel = (m: MuscleGroup) => MUSCLES[m]?.label ?? m;

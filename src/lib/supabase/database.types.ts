@@ -281,14 +281,14 @@ isOneToOne: false
                   ]
                 },"workout_sets": {
                   Row: {
-                    "completed": boolean,"created_at": string,"id": string,"is_warmup": boolean,"notes": string | null,"position": number,"reps": number | null,"revision": number,"session_exercise_id": string,"updated_at": string,"user_id": string,"weight_kg": number | null
+                    "completed": boolean,"created_at": string,"distance_m": number | null,"duration_seconds": number | null,"id": string,"is_warmup": boolean,"notes": string | null,"position": number,"reps": number | null,"revision": number,"session_exercise_id": string,"updated_at": string,"user_id": string,"weight_kg": number | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "completed"?: boolean,"created_at"?: string,"id": string,"is_warmup"?: boolean,"notes"?: string | null,"position": number,"reps"?: number | null,"revision"?: number,"session_exercise_id": string,"updated_at"?: string,"user_id"?: string,"weight_kg"?: number | null
+                    "completed"?: boolean,"created_at"?: string,"distance_m"?: number | null,"duration_seconds"?: number | null,"id": string,"is_warmup"?: boolean,"notes"?: string | null,"position": number,"reps"?: number | null,"revision"?: number,"session_exercise_id": string,"updated_at"?: string,"user_id"?: string,"weight_kg"?: number | null
                   }
                   Update: {
-                    "completed"?: boolean,"created_at"?: string,"id"?: string,"is_warmup"?: boolean,"notes"?: string | null,"position"?: number,"reps"?: number | null,"revision"?: number,"session_exercise_id"?: string,"updated_at"?: string,"user_id"?: string,"weight_kg"?: number | null
+                    "completed"?: boolean,"created_at"?: string,"distance_m"?: number | null,"duration_seconds"?: number | null,"id"?: string,"is_warmup"?: boolean,"notes"?: string | null,"position"?: number,"reps"?: number | null,"revision"?: number,"session_exercise_id"?: string,"updated_at"?: string,"user_id"?: string,"weight_kg"?: number | null
                   }
                   Relationships: [
                     {
@@ -322,7 +322,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "activity_level": "sedentary"|"lightly_active"|"moderately_active"|"very_active"|"extra_active","equipment_type": "barbell"|"dumbbell"|"machine"|"cable"|"bodyweight"|"kettlebell"|"band"|"smith_machine"|"ez_bar"|"trap_bar"|"other","estimate_sex": "male"|"female","load_type": "external"|"bodyweight"|"assisted","meal_category": "breakfast"|"lunch"|"dinner"|"snack","measurement_site": "neck"|"shoulders"|"chest"|"waist"|"hips"|"left_arm"|"right_arm"|"left_forearm"|"right_forearm"|"left_thigh"|"right_thigh"|"left_calf"|"right_calf","muscle_group": "chest"|"upper_back"|"lats"|"lower_back"|"traps"|"shoulders"|"biceps"|"triceps"|"forearms"|"abs"|"obliques"|"quads"|"hamstrings"|"glutes"|"calves"|"adductors"|"abductors"|"neck"|"full_body"|"cardio","unit_system": "metric"|"imperial","workout_status": "in_progress"|"completed"
+            "activity_level": "sedentary"|"lightly_active"|"moderately_active"|"very_active"|"extra_active","equipment_type": "barbell"|"dumbbell"|"machine"|"cable"|"bodyweight"|"kettlebell"|"band"|"smith_machine"|"ez_bar"|"trap_bar"|"other","estimate_sex": "male"|"female","load_type": "external"|"bodyweight"|"assisted"|"cardio","meal_category": "breakfast"|"lunch"|"dinner"|"snack","measurement_site": "neck"|"shoulders"|"chest"|"waist"|"hips"|"left_arm"|"right_arm"|"left_forearm"|"right_forearm"|"left_thigh"|"right_thigh"|"left_calf"|"right_calf","muscle_group": "chest"|"upper_back"|"lats"|"lower_back"|"traps"|"shoulders"|"biceps"|"triceps"|"forearms"|"abs"|"obliques"|"quads"|"hamstrings"|"glutes"|"calves"|"adductors"|"abductors"|"neck"|"full_body"|"cardio","unit_system": "metric"|"imperial","workout_status": "in_progress"|"completed"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -442,7 +442,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "activity_level": ["sedentary", "lightly_active", "moderately_active", "very_active", "extra_active"],"equipment_type": ["barbell", "dumbbell", "machine", "cable", "bodyweight", "kettlebell", "band", "smith_machine", "ez_bar", "trap_bar", "other"],"estimate_sex": ["male", "female"],"load_type": ["external", "bodyweight", "assisted"],"meal_category": ["breakfast", "lunch", "dinner", "snack"],"measurement_site": ["neck", "shoulders", "chest", "waist", "hips", "left_arm", "right_arm", "left_forearm", "right_forearm", "left_thigh", "right_thigh", "left_calf", "right_calf"],"muscle_group": ["chest", "upper_back", "lats", "lower_back", "traps", "shoulders", "biceps", "triceps", "forearms", "abs", "obliques", "quads", "hamstrings", "glutes", "calves", "adductors", "abductors", "neck", "full_body", "cardio"],"unit_system": ["metric", "imperial"],"workout_status": ["in_progress", "completed"]
+            "activity_level": ["sedentary", "lightly_active", "moderately_active", "very_active", "extra_active"],"equipment_type": ["barbell", "dumbbell", "machine", "cable", "bodyweight", "kettlebell", "band", "smith_machine", "ez_bar", "trap_bar", "other"],"estimate_sex": ["male", "female"],"load_type": ["external", "bodyweight", "assisted", "cardio"],"meal_category": ["breakfast", "lunch", "dinner", "snack"],"measurement_site": ["neck", "shoulders", "chest", "waist", "hips", "left_arm", "right_arm", "left_forearm", "right_forearm", "left_thigh", "right_thigh", "left_calf", "right_calf"],"muscle_group": ["chest", "upper_back", "lats", "lower_back", "traps", "shoulders", "biceps", "triceps", "forearms", "abs", "obliques", "quads", "hamstrings", "glutes", "calves", "adductors", "abductors", "neck", "full_body", "cardio"],"unit_system": ["metric", "imperial"],"workout_status": ["in_progress", "completed"]
           }
         }
 } as const

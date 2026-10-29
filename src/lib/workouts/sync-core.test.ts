@@ -226,3 +226,25 @@ describe("rebaseOnServer (keep this device's version)", () => {
     expect(ops.length).toBe(1 + r.exercises.length + r.sets.length);
   });
 });
+
+describe("cardio sets", () => {
+  const treadmill = { id: "ex-tread", name: "Treadmill", load_type: "cardio" as const };
+
+  it("count as done once a time or distance is entered, never from reps", () => {
+    const newId = ids();
+    let s = addExercise(createWorkout({ userId: "u1", newId, startedAt: "2026-10-29T10:00:00Z", name: null }), treadmill, newId);
+    const ex = sortedExercises(s)[0];
+    const [set] = setsFor(s, ex.id);
+    expect(set).toMatchObject({ duration_seconds: null, distance_m: null, completed: false });
+
+    s = updateSet(s, set.id, { reps: 10 });
+    expect(setsFor(s, ex.id)[0].completed).toBe(false);
+    s = updateSet(s, set.id, { duration_seconds: 1500 });
+    expect(setsFor(s, ex.id)[0].completed).toBe(true);
+    s = updateSet(s, set.id, { duration_seconds: null, distance_m: 5000 });
+    expect(setsFor(s, ex.id)[0].completed).toBe(true);
+
+    const op = buildOps(s).ops.find((o) => o.id === set.id)!;
+    expect(op.data).toMatchObject({ distance_m: 5000, duration_seconds: null });
+  });
+});

@@ -109,3 +109,66 @@ export function formatHeight(cm: number | null | undefined, system: UnitSystem):
   const { feet, inches } = cmToFeetInches(cm);
   return `${feet} ft ${inches} in`;
 }
+
+// Cardio distance is stored in metres and shown in km or miles.
+export const M_PER_MILE = 1609.344;
+
+export const distanceUnitLabel = (system: UnitSystem) => (system === "imperial" ? "mi" : "km");
+
+/** Convert a displayed distance (km or mi) to canonical metres. */
+export const distanceToM = (value: number, system: UnitSystem) => value * (system === "imperial" ? M_PER_MILE : 1000);
+export const distanceFromM = (m: number, system: UnitSystem) => m / (system === "imperial" ? M_PER_MILE : 1000);
+
+export function distanceInputValue(m: number | null | undefined, system: UnitSystem, decimals = 2): string {
+  if (m == null || !Number.isFinite(m)) return "";
+  return String(roundTo(distanceFromM(m, system), decimals));
+}
+
+export function formatDistance(m: number | null | undefined, system: UnitSystem, decimals = 2): string {
+  if (m == null || !Number.isFinite(m)) return "—";
+  return `${roundTo(distanceFromM(m, system), decimals).toLocaleString("en-US", {
+    maximumFractionDigits: decimals,
+  })} ${distanceUnitLabel(system)}`;
+}
+
+/**
+ * Parse a typed duration into seconds. Blank -> null. Accepts minutes ("30", "12.5"),
+ * "mm:ss" ("25:30") and "h:mm:ss" ("1:05:00").
+ */
+export function parseDuration(input: string | null | undefined): ParseResult {
+  const raw = (input ?? "").trim();
+  if (raw === "") return { ok: true, value: null };
+  if (raw.includes(":")) {
+    const parts = raw.split(":");
+    if (parts.length > 3 || !parts.every((p) => /^\d+$/.test(p))) return { ok: false, error: "Use minutes or mm:ss" };
+    const nums = parts.map(Number);
+    // Every part after the first is minutes or seconds, so it must be under 60.
+    if (nums.slice(1).some((n) => n >= 60)) return { ok: false, error: "Use minutes or mm:ss" };
+    const [h, m, s] = nums.length === 3 ? nums : [0, ...nums];
+    return { ok: true, value: h * 3600 + m * 60 + s };
+  }
+  const r = parseDecimal(raw);
+  if (!r.ok) return { ok: false, error: "Use minutes or mm:ss" };
+  return { ok: true, value: Math.round(r.value! * 60) };
+}
+
+/** Seconds as an editable value: "25:30", "1:05:00", or "" when unknown. */
+export function durationInputValue(seconds: number | null | undefined): string {
+  if (seconds == null || !Number.isFinite(seconds)) return "";
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.round(seconds % 60);
+  const ss = String(s).padStart(2, "0");
+  return h ? `${h}:${String(m).padStart(2, "0")}:${ss}` : `${m}:${ss}`;
+}
+
+/** Seconds for display: "25 min", "25 min 30 s", "1 h 05 min", or "—". */
+export function formatSeconds(seconds: number | null | undefined): string {
+  if (seconds == null || !Number.isFinite(seconds)) return "—";
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.round(seconds % 60);
+  if (h) return `${h} h ${String(m).padStart(2, "0")} min`;
+  if (m && s) return `${m} min ${s} s`;
+  return m ? `${m} min` : `${s} s`;
+}

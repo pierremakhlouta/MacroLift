@@ -6,7 +6,7 @@ import { useId, useState } from "react";
 import { cx } from "@/components/ui";
 import type { HistoryExercise, HistoryWorkout } from "@/lib/queries/workouts";
 import { formatTarget } from "@/lib/routines/targets";
-import { formatWeight, type UnitSystem } from "@/lib/units";
+import { formatDistance, formatSeconds, formatWeight, type UnitSystem } from "@/lib/units";
 import { bestSet, formatDuration, isLoggedSet, workoutSummary, type SummarySet } from "@/lib/workouts/summary";
 
 export function workoutTitle(w: Pick<HistoryWorkout, "name" | "routine_name_snapshot">) {
@@ -26,6 +26,13 @@ export function summaryFor(w: HistoryWorkout) {
 
 /** Human description of one set, respecting how the exercise's weight is interpreted. */
 export function describeSet(set: SummarySet, ex: Pick<HistoryExercise, "load_type_snapshot">, units: UnitSystem): string {
+  if (ex.load_type_snapshot === "cardio") {
+    const parts = [
+      set.distance_m != null && formatDistance(set.distance_m, units),
+      set.duration_seconds != null && formatSeconds(set.duration_seconds),
+    ].filter(Boolean);
+    return parts.length ? parts.join(" in ") : "—";
+  }
   const reps = set.reps == null ? "— reps" : `${set.reps} ${set.reps === 1 ? "rep" : "reps"}`;
   if (set.weight_kg == null) return ex.load_type_snapshot === "external" ? `${reps} (no weight)` : reps;
   const w = formatWeight(set.weight_kg, units);
@@ -41,6 +48,8 @@ export function WorkoutStats({ workout, units }: { workout: HistoryWorkout; unit
     { label: "Sets", value: String(s.loggedSets) },
     { label: "Reps", value: String(s.totalReps) },
     { label: "Volume", value: s.volumeKg == null ? "—" : formatWeight(s.volumeKg, units, 0) },
+    ...(s.cardioSeconds != null ? [{ label: "Cardio time", value: formatSeconds(s.cardioSeconds) }] : []),
+    ...(s.cardioDistanceM != null ? [{ label: "Distance", value: formatDistance(s.cardioDistanceM, units) }] : []),
   ];
   return (
     <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -82,11 +91,11 @@ export function WorkoutExerciseDetails({ workout, units }: { workout: HistoryWor
                 </thead>
                 <tbody>
                   {ex.sets.map((s, i) => (
-                    <tr key={s.id} className={cx("border-t border-border", !isLoggedSet(s) && "text-muted")}>
+                    <tr key={s.id} className={cx("border-t border-border", !isLoggedSet(s, ex.load_type_snapshot) && "text-muted")}>
                       <td className="py-1.5 tabular-nums">{i + 1}</td>
                       <td className="py-1.5 tabular-nums">
                         {describeSet(s, ex, units)}
-                        {!isLoggedSet(s) && <span className="ml-1 text-xs">(not logged)</span>}
+                        {!isLoggedSet(s, ex.load_type_snapshot) && <span className="ml-1 text-xs">(not logged)</span>}
                       </td>
                     </tr>
                   ))}
@@ -124,6 +133,7 @@ export function WorkoutHistoryCard({ workout, units }: { workout: HistoryWorkout
             {formatDuration(s.durationMs)} · {s.exerciseCount} {s.exerciseCount === 1 ? "exercise" : "exercises"} · {s.loggedSets}{" "}
             {s.loggedSets === 1 ? "set" : "sets"}
             {s.volumeKg != null && ` · ${formatWeight(s.volumeKg, units, 0)}`}
+            {s.cardioDistanceM != null && ` · ${formatDistance(s.cardioDistanceM, units)}`}
           </span>
           {workout.exercises.length > 0 && (
             <span className="mt-1 block truncate text-xs text-muted">

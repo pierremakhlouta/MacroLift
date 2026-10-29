@@ -6,8 +6,8 @@ on free tiers only.
 
 ## Features
 
-- **Workouts:** a library of 70 built-in exercises plus your own, live search, and routines with target sets and
-  rep ranges. Active-workout logging autosaves on the device, works through dropped connections,
+- **Workouts:** a library of 81 built-in exercises plus your own, live search, and routines with target sets and
+  rep ranges. Cardio (treadmill, bike, rowing…) is logged as distance and time instead of weight and reps. Active-workout logging autosaves on the device, works through dropped connections,
   resumes after a closed tab, and syncs with conflict detection. History shows sets, reps and volume.
 - **Nutrition:**
   - A daily diary by meal, with saved foods (or optional USDA FoodData Central search) and saved meals.

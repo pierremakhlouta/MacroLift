@@ -42,6 +42,9 @@ export type LocalSet = {
   position: number;
   reps: number | null;
   weight_kg: number | null;
+  /** Cardio only. Absent on sets saved by older versions of the app. */
+  duration_seconds?: number | null;
+  distance_m?: number | null;
   is_warmup: boolean;
   completed: boolean;
   notes: string | null;
@@ -115,7 +118,25 @@ export const setsFor = (s: ActiveWorkout, exerciseId: string) =>
 export const hasPending = (s: ActiveWorkout) => Object.keys(s.pending).length > 0;
 
 function blankSet(id: string, exerciseId: string, position: number, weightKg: number | null = null): LocalSet {
-  return { id, session_exercise_id: exerciseId, position, reps: null, weight_kg: weightKg, is_warmup: false, completed: false, notes: null, revision: null };
+  return {
+    id,
+    session_exercise_id: exerciseId,
+    position,
+    reps: null,
+    weight_kg: weightKg,
+    duration_seconds: null,
+    distance_m: null,
+    is_warmup: false,
+    completed: false,
+    notes: null,
+    revision: null,
+  };
+}
+
+/** A set counts as done once reps are entered, or for cardio once a time or distance is. */
+export function isSetDone(set: Pick<LocalSet, "reps" | "duration_seconds" | "distance_m">, loadType: LoadType): boolean {
+  if (loadType === "cardio") return (set.duration_seconds ?? 0) > 0 || (set.distance_m ?? 0) > 0;
+  return set.reps != null && set.reps > 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -193,11 +214,14 @@ export function addSet(state: ActiveWorkout, exerciseId: string, newId: () => st
 // Editing
 // ---------------------------------------------------------------------------
 
-export function updateSet(state: ActiveWorkout, setId: string, patch: Partial<Pick<LocalSet, "reps" | "weight_kg" | "notes" | "is_warmup">>): ActiveWorkout {
+export type SetPatch = Partial<Pick<LocalSet, "reps" | "weight_kg" | "duration_seconds" | "distance_m" | "notes" | "is_warmup">>;
+
+export function updateSet(state: ActiveWorkout, setId: string, patch: SetPatch): ActiveWorkout {
   const sets = state.sets.map((s) => {
     if (s.id !== setId) return s;
     const next = { ...s, ...patch };
-    next.completed = next.reps != null && next.reps > 0;
+    const loadType = state.exercises.find((e) => e.id === s.session_exercise_id)?.load_type_snapshot ?? "external";
+    next.completed = isSetDone(next, loadType);
     return next;
   });
   return mark({ ...state, sets }, "set", setId, "upsert");

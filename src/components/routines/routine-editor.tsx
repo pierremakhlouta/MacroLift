@@ -98,7 +98,8 @@ export function RoutineEditor({ routine, isNew }: { routine: Routine; isNew: boo
     const errs: Record<string, ItemErrors> = {};
     const payload = items.map((it) => {
       const sets = parseTargetSets(it.sets);
-      const reps = parseRepRange(it.reps);
+      // Cardio is logged as time and distance, so it has no rep target.
+      const reps = it.exercise.load_type === "cardio" ? parseRepRange("") : parseRepRange(it.reps);
       const itemNotes = itemNotesSchema.safeParse(it.notes);
       const err: ItemErrors = {};
       if (!sets.ok) err.sets = sets.error;
@@ -199,13 +200,17 @@ export function RoutineEditor({ routine, isNew }: { routine: Routine; isNew: boo
                         onChange={(e) => updateItem(it.id, { sets: e.target.value })}
                         error={errs.sets}
                       />
-                      <TextField
-                        label="Target reps"
-                        placeholder="e.g. 8–12"
-                        value={it.reps}
-                        onChange={(e) => updateItem(it.id, { reps: e.target.value })}
-                        error={errs.reps}
-                      />
+                      {it.exercise.load_type === "cardio" ? (
+                        <p className="self-end pb-3 text-xs text-muted">Cardio: log time and distance during the workout.</p>
+                      ) : (
+                        <TextField
+                          label="Target reps"
+                          placeholder="e.g. 8–12"
+                          value={it.reps}
+                          onChange={(e) => updateItem(it.id, { reps: e.target.value })}
+                          error={errs.reps}
+                        />
+                      )}
                     </div>
                     <TextField
                       label="Note (optional)"

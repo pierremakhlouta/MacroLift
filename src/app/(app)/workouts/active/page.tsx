@@ -12,7 +12,7 @@ import { SetRow, weightColumnLabel } from "@/components/workouts/set-row";
 import { SyncStatusBadge, syncDetail } from "@/components/workouts/sync-status";
 import { useUnitSystem } from "@/lib/queries/profile";
 import { formatTarget } from "@/lib/routines/targets";
-import { formatWeight, weightUnitLabel } from "@/lib/units";
+import { distanceUnitLabel, formatDistance, formatSeconds, formatWeight, weightUnitLabel } from "@/lib/units";
 import { activeWorkoutStore, useActiveWorkout } from "@/lib/workouts/active-store";
 import { formatDuration, workoutSummary } from "@/lib/workouts/summary";
 import { setsFor, sortedExercises, type ActiveWorkout, type LocalExercise } from "@/lib/workouts/sync-core";
@@ -195,10 +195,12 @@ export default function ActiveWorkoutPage() {
           <Stat label="Sets logged" value={String(preview.loggedSets)} />
           <Stat label="Reps" value={String(preview.totalReps)} />
           <Stat label="Volume" value={preview.volumeKg == null ? "—" : formatWeight(preview.volumeKg, units, 0)} />
+          {preview.cardioSeconds != null && <Stat label="Cardio time" value={formatSeconds(preview.cardioSeconds)} />}
+          {preview.cardioDistanceM != null && <Stat label="Distance" value={formatDistance(preview.cardioDistanceM, units)} />}
         </dl>
         {preview.loggedSets === 0 && (
           <Alert tone="warning" className="mt-3">
-            No sets logged yet. Sets count once reps are entered.
+            No sets logged yet. Sets count once reps are entered, or for cardio a time or distance.
           </Alert>
         )}
       </Dialog>
@@ -290,6 +292,7 @@ function ExerciseCard({
           {target && <p className="text-xs text-muted">Target {target}</p>}
           {exercise.load_type_snapshot === "bodyweight" && <p className="text-xs text-muted">Bodyweight · weight is optional added load</p>}
           {exercise.load_type_snapshot === "assisted" && <p className="text-xs text-muted">Assisted · weight is assistance</p>}
+          {exercise.load_type_snapshot === "cardio" && <p className="text-xs text-muted">Cardio · time as minutes or mm:ss</p>}
         </div>
         <div className="-mr-1 flex shrink-0">
           <IconButton label={`Move ${name} up`} disabled={index === 0} onClick={() => activeWorkoutStore.moveExercise(exercise.id, -1)}>
@@ -306,10 +309,19 @@ function ExerciseCard({
 
       <div aria-hidden className="mt-3 grid grid-cols-[1.75rem_minmax(0,1fr)_minmax(0,1fr)_2.75rem_2.75rem] gap-2 text-center text-[11px] font-semibold uppercase tracking-wide text-muted">
         <span>Set</span>
-        <span>
-          {weightColumnLabel(exercise.load_type_snapshot)} ({weightUnitLabel(units)})
-        </span>
-        <span>Reps</span>
+        {exercise.load_type_snapshot === "cardio" ? (
+          <>
+            <span>Distance ({distanceUnitLabel(units)})</span>
+            <span>Time</span>
+          </>
+        ) : (
+          <>
+            <span>
+              {weightColumnLabel(exercise.load_type_snapshot)} ({weightUnitLabel(units)})
+            </span>
+            <span>Reps</span>
+          </>
+        )}
         <span />
         <span />
       </div>

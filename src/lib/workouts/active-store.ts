@@ -56,7 +56,7 @@ const MAX_RETRY_MS = 30_000;
 const SESSION_SELECT =
   "id, routine_id, routine_name_snapshot, name, notes, status, started_at, completed_at, revision, " +
   "exercises:session_exercises(id, session_id, exercise_id, exercise_name_snapshot, load_type_snapshot, position, notes, target_sets, target_reps_min, target_reps_max, revision, " +
-  "sets:workout_sets(id, session_exercise_id, position, reps, weight_kg, is_warmup, completed, notes, revision))";
+  "sets:workout_sets(id, session_exercise_id, position, reps, weight_kg, duration_seconds, distance_m, is_warmup, completed, notes, revision))";
 
 type ServerSession = Omit<ActiveWorkout["session"], "revision"> & {
   revision: number;

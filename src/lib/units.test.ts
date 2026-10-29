@@ -2,6 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   cmToFeetInches,
   cmToIn,
+  distanceInputValue,
+  distanceToM,
+  durationInputValue,
+  formatDistance,
+  formatSeconds,
   feetInchesToCm,
   formatHeight,
   formatWeight,
@@ -9,6 +14,7 @@ import {
   kgToLb,
   lbToKg,
   parseDecimal,
+  parseDuration,
   parseInteger,
   roundTo,
   weightFromKg,
@@ -116,5 +122,36 @@ describe("display formatting", () => {
     // 182.88 cm is exactly 6 ft; 182.87 rounds to 11.99.. -> 12.0 and must carry over.
     expect(cmToFeetInches(182.87)).toEqual({ feet: 6, inches: 0 });
     expect(feetInchesToCm(6, 0)).toBeCloseTo(182.88, 10);
+  });
+});
+
+describe("cardio distance and time", () => {
+  it("stores distance in metres from km or miles", () => {
+    expect(distanceToM(5, "metric")).toBe(5000);
+    expect(distanceToM(1, "imperial")).toBeCloseTo(1609.344, 6);
+    expect(distanceInputValue(5000, "imperial")).toBe("3.11");
+    expect(formatDistance(5000, "metric")).toBe("5 km");
+    expect(formatDistance(null, "metric")).toBe("—");
+  });
+
+  it("parses minutes, mm:ss and h:mm:ss; blank is unknown", () => {
+    expect(parseDuration("")).toEqual({ ok: true, value: null });
+    expect(parseDuration("30")).toEqual({ ok: true, value: 1800 });
+    expect(parseDuration("12.5")).toEqual({ ok: true, value: 750 });
+    expect(parseDuration("25:30")).toEqual({ ok: true, value: 1530 });
+    expect(parseDuration("1:05:00")).toEqual({ ok: true, value: 3900 });
+    expect(parseDuration("10:75").ok).toBe(false);
+    expect(parseDuration("abc").ok).toBe(false);
+    expect(parseDuration("1:2:3:4").ok).toBe(false);
+  });
+
+  it("formats seconds for inputs and display", () => {
+    expect(durationInputValue(1530)).toBe("25:30");
+    expect(durationInputValue(3900)).toBe("1:05:00");
+    expect(durationInputValue(null)).toBe("");
+    expect(formatSeconds(1800)).toBe("30 min");
+    expect(formatSeconds(1530)).toBe("25 min 30 s");
+    expect(formatSeconds(3900)).toBe("1 h 05 min");
+    expect(formatSeconds(45)).toBe("45 s");
   });
 });

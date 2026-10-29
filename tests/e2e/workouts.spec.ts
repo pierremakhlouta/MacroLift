@@ -232,3 +232,57 @@ test("workout pages are accessible and fit the viewport @responsive", async ({ p
   await expectNoA11yViolations(page);
   await user.cleanup();
 });
+
+test("cardio is logged as distance and time, not weight and reps", async ({ page }) => {
+  const user = await signInAsNewUser(page, "wk-cardio");
+  await page.goto("/workouts");
+  await page.getByRole("button", { name: "Start empty workout" }).click();
+  await page.waitForURL("**/workouts/active");
+  await page.getByLabel("Workout name").fill("Run");
+  await page.getByRole("button", { name: "Add exercise" }).click();
+  await page.getByRole("dialog").getByLabel("Search exercises").fill("treadmill");
+  await page.getByRole("dialog").getByRole("button", { name: /^Treadmill/ }).click();
+
+  const distance = page.getByLabel("Treadmill, set 1 distance in km");
+  const time = page.getByLabel("Treadmill, set 1 time, in minutes or minutes:seconds");
+  await expect(distance).toBeVisible();
+  await expect(page.getByLabel("Treadmill, set 1 reps")).toHaveCount(0);
+  await expect(page.getByLabel(/^Treadmill, set 1 weight/)).toHaveCount(0);
+
+  await time.fill("25:61");
+  await expect(page.getByText("Use minutes or mm:ss")).toBeVisible();
+  await time.fill("25:30");
+  await distance.fill("5");
+  await expect(page.getByRole("status").filter({ hasText: /Saved/ }).first()).toBeVisible();
+  await expectNoA11yViolations(page);
+
+  const { data } = await user.db.from("workout_sets").select("duration_seconds, distance_m, reps, weight_kg, completed");
+  expect(data).toEqual([{ duration_seconds: 1530, distance_m: 5000, reps: null, weight_kg: null, completed: true }]);
+
+  await page.getByRole("button", { name: "Finish workout" }).click();
+  const dialog = page.getByRole("dialog", { name: "Finish workout?" });
+  await expect(dialog.getByText("Cardio time")).toBeVisible();
+  await dialog.getByRole("button", { name: "Finish workout" }).click();
+  await page.waitForURL(/\/workouts\/history\/[0-9a-f-]{36}\?finished=1$/);
+  await expect(page.getByRole("cell", { name: "5 km in 25 min 30 s" })).toBeVisible();
+  await expect(page.getByText("Volume").locator("..")).toContainText("—");
+
+  await page.goto("/workouts/history");
+  await expect(page.getByRole("article", { name: /Run/ })).toContainText("1 exercise · 1 set · 5 km");
+  await user.cleanup();
+});
+
+test("a custom exercise can be set up as cardio", async ({ page }) => {
+  const user = await signInAsNewUser(page, "wk-cardio-custom");
+  await page.goto("/workouts/exercises");
+  await page.getByRole("button", { name: /New exercise|Create exercise/ }).first().click();
+  const d = page.getByRole("dialog");
+  await d.getByLabel("Exercise name").fill("Hill sprints");
+  await d.getByRole("checkbox", { name: "Cardio" }).check();
+  await d.getByRole("radio", { name: /Time and distance/ }).check();
+  await d.getByRole("button", { name: "Create exercise" }).click();
+  await expect(d).toBeHidden();
+  const { data } = await user.db.from("exercises").select("load_type").eq("name", "Hill sprints").single();
+  expect(data!.load_type).toBe("cardio");
+  await user.cleanup();
+});

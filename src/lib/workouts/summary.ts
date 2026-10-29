@@ -1,10 +1,20 @@
 import type { LoadType } from "@/lib/exercises/catalog";
 
-export type SummarySet = { reps: number | null; weight_kg: number | null; is_warmup?: boolean | null };
+export type SummarySet = {
+  reps: number | null;
+  weight_kg: number | null;
+  duration_seconds?: number | null;
+  distance_m?: number | null;
+  is_warmup?: boolean | null;
+};
 export type SummaryExercise = { load_type_snapshot: LoadType; sets: SummarySet[] };
 
-/** A set counts as logged once reps are entered (blank or 0 reps = not performed). */
-export const isLoggedSet = (s: SummarySet) => s.reps != null && s.reps > 0;
+/**
+ * A set counts as logged once reps are entered (blank or 0 reps = not performed). Cardio sets
+ * count once a time or distance is entered.
+ */
+export const isLoggedSet = (s: SummarySet, loadType: LoadType = "external") =>
+  loadType === "cardio" ? (s.duration_seconds ?? 0) > 0 || (s.distance_m ?? 0) > 0 : s.reps != null && s.reps > 0;
 
 /** completed_at − started_at in ms; null if either is missing, invalid, or out of order. */
 export function workoutDurationMs(startedAt: string | null | undefined, completedAt: string | null | undefined): number | null {
@@ -33,6 +43,9 @@ export type WorkoutSummary = {
   volumeKg: number | null;
   /** Logged sets of bodyweight/assisted exercises: reported separately, never as zero volume. */
   bodyweightSets: number;
+  /** Cardio totals over logged cardio sets; null when none has a time / distance. */
+  cardioSeconds: number | null;
+  cardioDistanceM: number | null;
 };
 
 export function workoutSummary(input: {
@@ -45,11 +58,18 @@ export function workoutSummary(input: {
   let volume = 0;
   let volumeSets = 0;
   let bodyweightSets = 0;
+  let cardioSeconds: number | null = null;
+  let cardioDistanceM: number | null = null;
 
   for (const ex of input.exercises) {
     for (const s of ex.sets) {
-      if (!isLoggedSet(s) || s.is_warmup) continue;
+      if (!isLoggedSet(s, ex.load_type_snapshot) || s.is_warmup) continue;
       loggedSets += 1;
+      if (ex.load_type_snapshot === "cardio") {
+        if (s.duration_seconds != null) cardioSeconds = (cardioSeconds ?? 0) + s.duration_seconds;
+        if (s.distance_m != null) cardioDistanceM = (cardioDistanceM ?? 0) + s.distance_m;
+        continue;
+      }
       totalReps += s.reps!;
       if (ex.load_type_snapshot === "external") {
         if (s.weight_kg != null && Number.isFinite(s.weight_kg)) {
@@ -69,16 +89,27 @@ export function workoutSummary(input: {
     totalReps,
     volumeKg: volumeSets > 0 ? volume : null,
     bodyweightSets,
+    cardioSeconds,
+    cardioDistanceM,
   };
 }
 
-/** Best logged set for a summary line: heaviest weight (then most reps); most reps if unweighted. */
+/**
+ * Best logged set for a summary line: heaviest weight (then most reps); most reps if unweighted;
+ * for cardio, the longest distance (then the longest time).
+ */
 export function bestSet(ex: SummaryExercise): SummarySet | null {
   let best: SummarySet | null = null;
   for (const s of ex.sets) {
-    if (!isLoggedSet(s)) continue;
+    if (!isLoggedSet(s, ex.load_type_snapshot)) continue;
     if (!best) {
       best = s;
+      continue;
+    }
+    if (ex.load_type_snapshot === "cardio") {
+      const d = s.distance_m ?? -1;
+      const bd = best.distance_m ?? -1;
+      if (d > bd || (d === bd && (s.duration_seconds ?? 0) > (best.duration_seconds ?? 0))) best = s;
       continue;
     }
     const w = s.weight_kg ?? -1;

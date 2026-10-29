@@ -101,7 +101,7 @@ export function ExerciseForm({
       </SelectField>
 
       <fieldset className="space-y-2">
-        <legend className="text-sm font-medium">How is weight logged?</legend>
+        <legend className="text-sm font-medium">How is it logged?</legend>
         {(Object.keys(LOAD_TYPES) as LoadType[]).map((k) => (
           <label
             key={k}

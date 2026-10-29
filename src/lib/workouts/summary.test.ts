@@ -73,7 +73,7 @@ describe("workoutSummary", () => {
 
   it("handles an empty workout", () => {
     const s = workoutSummary({ started_at: base.started_at, completed_at: null, exercises: [] });
-    expect(s).toEqual({ durationMs: null, exerciseCount: 0, loggedSets: 0, totalReps: 0, volumeKg: null, bodyweightSets: 0 });
+    expect(s).toEqual({ durationMs: null, exerciseCount: 0, loggedSets: 0, totalReps: 0, volumeKg: null, bodyweightSets: 0, cardioSeconds: null, cardioDistanceM: null });
   });
 });
 
@@ -89,5 +89,35 @@ describe("bestSet", () => {
   it("ignores unlogged sets", () => {
     expect(bestSet({ load_type_snapshot: "external", sets: [{ reps: null, weight_kg: 100 }] })).toBeNull();
     expect(isLoggedSet({ reps: 1, weight_kg: null })).toBe(true);
+  });
+});
+
+describe("cardio", () => {
+  const run = {
+    load_type_snapshot: "cardio" as const,
+    sets: [
+      { reps: null, weight_kg: null, duration_seconds: 1500, distance_m: 5000 },
+      { reps: null, weight_kg: null, duration_seconds: 600, distance_m: null },
+      { reps: null, weight_kg: null, duration_seconds: null, distance_m: null },
+    ],
+  };
+
+  it("counts sets with a time or distance, totals them, and keeps them out of reps and volume", () => {
+    const s = workoutSummary({ started_at: null, completed_at: null, exercises: [run] });
+    expect(s.loggedSets).toBe(2);
+    expect(s.totalReps).toBe(0);
+    expect(s.volumeKg).toBeNull();
+    expect(s.bodyweightSets).toBe(0);
+    expect(s.cardioSeconds).toBe(2100);
+    expect(s.cardioDistanceM).toBe(5000);
+  });
+
+  it("logged means a time or distance for cardio", () => {
+    expect(isLoggedSet({ reps: null, weight_kg: null, duration_seconds: 60 }, "cardio")).toBe(true);
+    expect(isLoggedSet({ reps: 10, weight_kg: null }, "cardio")).toBe(false);
+  });
+
+  it("best cardio set is the longest distance", () => {
+    expect(bestSet(run)).toEqual(run.sets[0]);
   });
 });
