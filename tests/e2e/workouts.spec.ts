@@ -286,3 +286,38 @@ test("a custom exercise can be set up as cardio", async ({ page }) => {
   expect(data!.load_type).toBe("cardio");
   await user.cleanup();
 });
+
+test("each exercise shows last time and best from any earlier workout, not just the same routine", async ({ page }) => {
+  const user = await signInAsNewUser(page, "wk-records");
+  const { data: bench } = await user.db.from("exercises").select("id").eq("name", "Barbell Bench Press").single();
+  const past = async (startedAt: string, routine: string | null, sets: { reps: number; weight_kg: number; is_warmup?: boolean }[]) => {
+    const sessionId = randomUUID();
+    const exId = randomUUID();
+    for (const { error } of [
+      await user.db.from("workout_sessions").insert({
+        id: sessionId, name: routine, routine_name_snapshot: routine, status: "completed", started_at: startedAt, completed_at: startedAt,
+      }),
+      await user.db.from("session_exercises").insert({
+        id: exId, session_id: sessionId, exercise_id: bench!.id, exercise_name_snapshot: "Barbell Bench Press", position: 0,
+      }),
+      await user.db.from("workout_sets").insert(sets.map((s, i) => ({ id: randomUUID(), session_exercise_id: exId, position: i, ...s, is_warmup: s.is_warmup ?? false }))),
+    ]) expect(error).toBeNull();
+  };
+  await past("2026-10-20T10:00:00Z", "Push A", [{ reps: 5, weight_kg: 80 }, { reps: 8, weight_kg: 70 }]);
+  await past("2026-11-03T10:00:00Z", "Upper", [{ reps: 10, weight_kg: 100, is_warmup: true }, { reps: 8, weight_kg: 60 }, { reps: 6, weight_kg: 65 }]);
+
+  // An empty workout (no routine) still finds the bench history.
+  await startEmptyWithExercise(page);
+  const card = page.getByRole("region", { name: "1. Barbell Bench Press" });
+  await expect(card.getByRole("definition").first()).toHaveText(/^65 kg × 6 · /);
+  await expect(card.getByRole("definition").nth(1)).toHaveText(/^80 kg × 5 · /);
+  await expect(card.getByText("Last time")).toBeVisible();
+
+  // An exercise never logged before says so.
+  await page.getByRole("button", { name: "Add exercise" }).click();
+  await page.getByRole("dialog").getByLabel("Search exercises").fill("pull-up");
+  await page.getByRole("dialog").getByRole("button", { name: /^Pull-Up/ }).click();
+  await expect(page.getByRole("region", { name: "2. Pull-Up" }).getByText("First time logging this exercise")).toBeVisible();
+  await expectNoA11yViolations(page);
+  await user.cleanup();
+});

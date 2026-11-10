@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowDown, ArrowUp, Dumbbell, MessageSquarePlus, Plus, Trash2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNow } from "@/lib/hooks/use-now";
@@ -9,11 +10,14 @@ import { ExercisePicker } from "@/components/exercises/exercise-picker";
 import { UndoToast, type UndoAction } from "@/components/undo-toast";
 import { Alert, Button, ButtonLink, Card, EmptyState, Spinner, TextAreaField, TextField } from "@/components/ui";
 import { SetRow, weightColumnLabel } from "@/components/workouts/set-row";
+import { describeSet } from "@/components/workouts/workout-history-card";
 import { SyncStatusBadge, syncDetail } from "@/components/workouts/sync-status";
 import { useUnitSystem } from "@/lib/queries/profile";
+import { useExerciseHistory } from "@/lib/queries/workouts";
 import { formatTarget } from "@/lib/routines/targets";
 import { distanceUnitLabel, formatDistance, formatSeconds, formatWeight, weightUnitLabel } from "@/lib/units";
 import { activeWorkoutStore, useActiveWorkout } from "@/lib/workouts/active-store";
+import { exerciseRecords, type DatedSet, type PastExercise } from "@/lib/workouts/records";
 import { formatDuration, workoutSummary } from "@/lib/workouts/summary";
 import { setsFor, sortedExercises, type ActiveWorkout, type LocalExercise } from "@/lib/workouts/sync-core";
 
@@ -27,8 +31,10 @@ function summarize(w: ActiveWorkout, completedAt: string) {
 
 export default function ActiveWorkoutPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { loaded, workout, status, error, finishedSessionId, notice, generation } = useActiveWorkout();
   const units = useUnitSystem();
+  const history = useExerciseHistory((workout?.exercises ?? []).flatMap((e) => (e.exercise_id ? [e.exercise_id] : [])));
   const now = useNow();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [confirmFinish, setConfirmFinish] = useState(false);
@@ -41,9 +47,11 @@ export default function ActiveWorkoutPage() {
   useEffect(() => {
     if (finishedSessionId) {
       activeWorkoutStore.dismissFinished();
+      // The finished workout is now part of every exercise's "Last time" / "Best".
+      void queryClient.invalidateQueries({ queryKey: ["exercise-history"] });
       router.replace(`/workouts/history/${finishedSessionId}?finished=1`);
     }
-  }, [finishedSessionId, router]);
+  }, [finishedSessionId, queryClient, router]);
 
   if (!loaded && !workout) return <Spinner label="Loading your workout" />;
 
@@ -140,6 +148,7 @@ export default function ActiveWorkoutPage() {
                 index={i}
                 count={exercises.length}
                 units={units}
+                past={pastFor(history, ex.exercise_id)}
                 onRemove={() => removeExercise(ex)}
                 onRemoveSet={(setId, setNumber) => {
                   const removed = activeWorkoutStore.removeSet(setId);
@@ -267,6 +276,7 @@ function ExerciseCard({
   index,
   count,
   units,
+  past,
   onRemove,
   onRemoveSet,
 }: {
@@ -275,6 +285,8 @@ function ExerciseCard({
   index: number;
   count: number;
   units: ReturnType<typeof useUnitSystem>;
+  /** This exercise in earlier completed workouts; undefined while loading or unavailable (e.g. offline). */
+  past: PastExercise[] | undefined;
   onRemove: () => void;
   onRemoveSet: (setId: string, setNumber: number) => void;
 }) {
@@ -283,6 +295,8 @@ function ExerciseCard({
   const [showNotes, setShowNotes] = useState(Boolean(exercise.notes));
   const [notes, setNotes] = useState(exercise.notes ?? "");
   const name = exercise.exercise_name_snapshot;
+  const records = past ? exerciseRecords(past, exercise.load_type_snapshot) : null;
+  const record = (r: DatedSet) => `${describeSet(r.set, exercise, units)} · ${shortDate(r.date)}`;
 
   return (
     <Card className="p-3 sm:p-4" aria-label={`${index + 1}. ${name}`}>
@@ -293,6 +307,15 @@ function ExerciseCard({
           {exercise.load_type_snapshot === "bodyweight" && <p className="text-xs text-muted">Bodyweight · weight is optional added load</p>}
           {exercise.load_type_snapshot === "assisted" && <p className="text-xs text-muted">Assisted · weight is assistance</p>}
           {exercise.load_type_snapshot === "cardio" && <p className="text-xs text-muted">Cardio · time as minutes or mm:ss</p>}
+          {records?.last && records.best && (
+            <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-2 text-xs">
+              <dt className="text-muted">Last time</dt>
+              <dd className="tabular-nums">{record(records.last)}</dd>
+              <dt className="text-muted">Best</dt>
+              <dd className="tabular-nums">{record(records.best)}</dd>
+            </dl>
+          )}
+          {records && !records.last && <p className="mt-1 text-xs text-muted">First time logging this exercise</p>}
         </div>
         <div className="-mr-1 flex shrink-0">
           <IconButton label={`Move ${name} up`} disabled={index === 0} onClick={() => activeWorkoutStore.moveExercise(exercise.id, -1)}>
@@ -421,4 +444,15 @@ function ConflictDialog({ workout }: { workout: ActiveWorkout }) {
       </p>
     </Dialog>
   );
+}
+
+const shortDate = (iso: string) => new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+
+/**
+ * An exercise's earlier appearances, [] when it has none, or undefined while unknown (loading,
+ * offline, or a just-added exercise while the previous result is still shown).
+ */
+function pastFor(history: ReturnType<typeof useExerciseHistory>, exerciseId: string | null): PastExercise[] | undefined {
+  if (!exerciseId || !history.data) return undefined;
+  return history.data[exerciseId] ?? (history.isPlaceholderData ? undefined : []);
 }

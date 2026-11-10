@@ -1,9 +1,10 @@
 "use client";
 
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/providers";
 import { getSupabase } from "@/lib/supabase/client";
 import type { Tables } from "@/lib/supabase/database.types";
+import type { PastExercise } from "@/lib/workouts/records";
 
 export type HistorySet = Pick<Tables<"workout_sets">, "id" | "position" | "reps" | "weight_kg" | "duration_seconds" | "distance_m" | "is_warmup" | "notes">;
 export type HistoryExercise = Pick<
@@ -80,6 +81,41 @@ export function useDeleteWorkout() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["workout-history"] });
       void queryClient.invalidateQueries({ queryKey: ["workout"] });
+    },
+  });
+}
+
+/**
+ * Every completed appearance of these exercises (by exercise, not by routine), for the
+ * "Last time" and "Best" lines in the active workout. Keyed by exercise id.
+ */
+export function useExerciseHistory(exerciseIds: string[]) {
+  const { user } = useAuth();
+  const ids = [...new Set(exerciseIds)].sort();
+  return useQuery({
+    queryKey: ["exercise-history", user?.id, ids],
+    enabled: Boolean(user) && ids.length > 0,
+    // Adding an exercise changes the key; keep showing the others' records meanwhile.
+    placeholderData: keepPreviousData,
+    queryFn: async (): Promise<Record<string, PastExercise[]>> => {
+      const { data, error } = await getSupabase()
+        .from("session_exercises")
+        .select(
+          "exercise_id, load_type_snapshot, session:workout_sessions!inner(started_at, status), " +
+            "sets:workout_sets(reps, weight_kg, duration_seconds, distance_m, is_warmup)",
+        )
+        .in("exercise_id", ids)
+        .eq("session.status", "completed");
+      if (error) throw new Error(error.message);
+      const rows = data as unknown as (Omit<PastExercise, "started_at"> & {
+        exercise_id: string;
+        session: { started_at: string };
+      })[];
+      const byExercise: Record<string, PastExercise[]> = {};
+      for (const r of rows) {
+        (byExercise[r.exercise_id] ??= []).push({ started_at: r.session.started_at, load_type_snapshot: r.load_type_snapshot, sets: r.sets });
+      }
+      return byExercise;
     },
   });
 }
