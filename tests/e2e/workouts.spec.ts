@@ -287,7 +287,7 @@ test("a custom exercise can be set up as cardio", async ({ page }) => {
   await user.cleanup();
 });
 
-test("each exercise shows last time and best from any earlier workout, not just the same routine", async ({ page }) => {
+test("each exercise shows its best set from any earlier workout, not just the same routine", async ({ page }) => {
   const user = await signInAsNewUser(page, "wk-records");
   const { data: bench } = await user.db.from("exercises").select("id").eq("name", "Barbell Bench Press").single();
   const past = async (startedAt: string, routine: string | null, sets: { reps: number; weight_kg: number; is_warmup?: boolean }[]) => {
@@ -309,9 +309,9 @@ test("each exercise shows last time and best from any earlier workout, not just 
   // An empty workout (no routine) still finds the bench history.
   await startEmptyWithExercise(page);
   const card = page.getByRole("region", { name: "1. Barbell Bench Press" });
-  await expect(card.getByRole("definition").first()).toHaveText(/^65 kg × 6 · /);
-  await expect(card.getByRole("definition").nth(1)).toHaveText(/^80 kg × 5 · /);
-  await expect(card.getByText("Last time")).toBeVisible();
+  // 80 × 5 beats the later 65 × 6 and the 100 kg warm-up.
+  await expect(card.getByText(/^Best 80 kg × 5 · /)).toBeVisible();
+  await expect(card.getByText("Last time")).toHaveCount(0);
 
   // An exercise never logged before says so.
   await page.getByRole("button", { name: "Add exercise" }).click();

@@ -17,7 +17,7 @@ import { useExerciseHistory } from "@/lib/queries/workouts";
 import { formatTarget } from "@/lib/routines/targets";
 import { distanceUnitLabel, formatDistance, formatSeconds, formatWeight, weightUnitLabel } from "@/lib/units";
 import { activeWorkoutStore, useActiveWorkout } from "@/lib/workouts/active-store";
-import { exerciseRecords, type DatedSet, type PastExercise } from "@/lib/workouts/records";
+import { exerciseBest, type PastExercise } from "@/lib/workouts/records";
 import { formatDuration, workoutSummary } from "@/lib/workouts/summary";
 import { setsFor, sortedExercises, type ActiveWorkout, type LocalExercise } from "@/lib/workouts/sync-core";
 
@@ -47,7 +47,7 @@ export default function ActiveWorkoutPage() {
   useEffect(() => {
     if (finishedSessionId) {
       activeWorkoutStore.dismissFinished();
-      // The finished workout is now part of every exercise's "Last time" / "Best".
+      // The finished workout now counts toward every exercise's "Best".
       void queryClient.invalidateQueries({ queryKey: ["exercise-history"] });
       router.replace(`/workouts/history/${finishedSessionId}?finished=1`);
     }
@@ -285,7 +285,7 @@ function ExerciseCard({
   index: number;
   count: number;
   units: ReturnType<typeof useUnitSystem>;
-  /** This exercise in earlier completed workouts; undefined while loading or unavailable (e.g. offline). */
+  /** This exercise in earlier completed workouts, for its "Best" line; undefined while loading or unavailable (e.g. offline). */
   past: PastExercise[] | undefined;
   onRemove: () => void;
   onRemoveSet: (setId: string, setNumber: number) => void;
@@ -295,8 +295,7 @@ function ExerciseCard({
   const [showNotes, setShowNotes] = useState(Boolean(exercise.notes));
   const [notes, setNotes] = useState(exercise.notes ?? "");
   const name = exercise.exercise_name_snapshot;
-  const records = past ? exerciseRecords(past, exercise.load_type_snapshot) : null;
-  const record = (r: DatedSet) => `${describeSet(r.set, exercise, units)} · ${shortDate(r.date)}`;
+  const best = past ? exerciseBest(past, exercise.load_type_snapshot) : undefined;
 
   return (
     <Card className="p-3 sm:p-4" aria-label={`${index + 1}. ${name}`}>
@@ -307,15 +306,12 @@ function ExerciseCard({
           {exercise.load_type_snapshot === "bodyweight" && <p className="text-xs text-muted">Bodyweight · weight is optional added load</p>}
           {exercise.load_type_snapshot === "assisted" && <p className="text-xs text-muted">Assisted · weight is assistance</p>}
           {exercise.load_type_snapshot === "cardio" && <p className="text-xs text-muted">Cardio · time as minutes or mm:ss</p>}
-          {records?.last && records.best && (
-            <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-2 text-xs">
-              <dt className="text-muted">Last time</dt>
-              <dd className="tabular-nums">{record(records.last)}</dd>
-              <dt className="text-muted">Best</dt>
-              <dd className="tabular-nums">{record(records.best)}</dd>
-            </dl>
+          {best && (
+            <p className="mt-1 text-xs tabular-nums">
+              <span className="text-muted">Best</span> {describeSet(best.set, exercise, units)} · {shortDate(best.date)}
+            </p>
           )}
-          {records && !records.last && <p className="mt-1 text-xs text-muted">First time logging this exercise</p>}
+          {best === null && <p className="mt-1 text-xs text-muted">First time logging this exercise</p>}
         </div>
         <div className="-mr-1 flex shrink-0">
           <IconButton label={`Move ${name} up`} disabled={index === 0} onClick={() => activeWorkoutStore.moveExercise(exercise.id, -1)}>

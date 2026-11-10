@@ -86,8 +86,8 @@ export function useDeleteWorkout() {
 }
 
 /**
- * Every completed appearance of these exercises (by exercise, not by routine), for the
- * "Last time" and "Best" lines in the active workout. Keyed by exercise id.
+ * Every completed appearance of these exercises (by exercise, not by routine), for the "Best"
+ * line in the active workout. Keyed by exercise id.
  */
 export function useExerciseHistory(exerciseIds: string[]) {
   const { user } = useAuth();
@@ -95,7 +95,7 @@ export function useExerciseHistory(exerciseIds: string[]) {
   return useQuery({
     queryKey: ["exercise-history", user?.id, ids],
     enabled: Boolean(user) && ids.length > 0,
-    // Adding an exercise changes the key; keep showing the others' records meanwhile.
+    // Adding an exercise changes the key; keep showing the others' bests meanwhile.
     placeholderData: keepPreviousData,
     queryFn: async (): Promise<Record<string, PastExercise[]>> => {
       const { data, error } = await getSupabase()
